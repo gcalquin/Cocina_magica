@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CocinaMágica 🍳</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link href="styles.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-logo">🍳</div>
+  <div class="loading-title">CocinaMágica</div>
+  <p class="text-muted small mt-1 mb-4">Tu asistente de cocina inteligente</p>
+  <div class="spinner"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg sticky-top px-3 py-2">
+  <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+    <span style="font-size:1.6rem;line-height:1">🍳</span>
+    CocinaMágica
+  </a>
+  <button class="navbar-toggler border-0 ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navContent">
+    <ul class="nav nav-pills ms-3 me-auto flex-wrap" id="mainTabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#despensa">🥦 Despensa</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#recipes">🍽️ Recetas</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#events">🎉 Eventos</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#menu">📅 Menú</button></li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#familia">
+          👨‍👩‍👧 Familia <span id="familyBadge" class="badge bg-danger ms-1" style="display:none">0</span>
+        </button>
+      </li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#historial">📖 Historial</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#comunidad" onclick="renderCommunityTab()">🌟 Comunidad</button></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+      <div class="btn-group btn-group-sm" role="group">
+        <input type="radio" class="btn-check view-toggle" name="viewMode" id="viewCards" value="cards" checked>
+        <label class="btn btn-outline-secondary rounded-start-pill" for="viewCards"><i class="fa-solid fa-grip"></i></label>
+        <input type="radio" class="btn-check view-toggle" name="viewMode" id="viewList" value="list">
+        <label class="btn btn-outline-secondary rounded-end-pill" for="viewList"><i class="fa-solid fa-list"></i></label>
+      </div>
+      <button class="season-nav-chip" id="seasonChipBtn" onclick="toggleSeasonFilter()" title="Filtrar por temporada actual">
+        <span id="seasonChipLabel">🍽️</span>
+      </button>
+      <button class="btn btn-sm btn-outline-warning rounded-pill" onclick="openEmergencyModal()" title="¡Llegaron visitas!">
+        <i class="fa-solid fa-bell-concierge"></i> <span class="d-none d-lg-inline">¡Visitas!</span>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill" id="themeToggle" title="Cambiar tema">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#settingsModal" title="Configuración">
+        <i class="fa-solid fa-gear"></i>
+        <span id="reminderDot" class="reminder-dot" style="display:none"></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Alerta vencimientos -->
+<div class="container-fluid px-3 pt-2">
+  <div id="expiryAlertBar" class="expiry-alert-bar d-none"></div>
+</div>
+
+<!-- Cart bar -->
+<div id="cartBar" class="d-none position-sticky top-0 z-3 cart-bar">
+  <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+      <div class="cart-count-bubble"><span id="cartCount">0</span></div>
+      <div>
+        <div class="fw-bold text-white" style="font-size:.95rem;line-height:1.2">Recetas seleccionadas</div>
+        <div id="cartRecipeNames" class="text-white opacity-75 small text-truncate" style="max-width:280px"></div>
+      </div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <button class="btn btn-sm btn-light rounded-pill px-3 fw-semibold" onclick="showCartModal()">
+        <i class="fa-solid fa-receipt"></i> Ver Lista
+      </button>
+      <button class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" onclick="shareCartWhatsapp()" title="Enviar lista por WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i> Enviar
+      </button>
+      <button class="btn btn-sm rounded-circle" style="background:rgba(255,255,255,.2);color:white;width:34px;height:34px;padding:0;border:none" onclick="clearCart()" title="Limpiar selección">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid px-3 py-3">
+<div class="tab-content">
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: DESPENSA
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade show active" id="despensa">
+  <div class="row mb-4 g-3">
+    <div class="col-12">
+      <div class="hero-banner">
+        <div class="hero-bg-overlay" id="heroBgOverlay"></div>
+        <button class="hero-customize-btn no-print" onclick="document.getElementById('heroBgInput').click()" title="Cambiar imagen de fondo">
+          <i class="fa-solid fa-image"></i> Fondo
+        </button>
+        <input type="file" id="heroBgInput" accept="image/*" class="d-none">
+        <div class="row align-items-center">
+          <div class="col-md-4 text-start">
+            <h1 class="hero-title">🍳 CocinaMágica</h1>
+            <p class="mb-0 opacity-75 fw-semibold">Tu asistente de cocina inteligente</p>
+          </div>
+          <div class="col-md-8">
+            <div class="row g-3">
+              <div class="col-4"><div class="step-box text-center"><div class="step-icon">🥦</div><div class="fw-bold" id="dashIngCount">0</div><small>Ingredientes</small></div></div>
+              <div class="col-4"><div class="step-box text-center"><div class="step-icon">💰</div><div class="fw-bold" id="dashTotalValue">$0</div><small>Valor Despensa</small></div></div>
+              <div class="col-4"><div class="step-box text-center"><div class="step-icon">✅</div><div class="fw-bold" id="dashReadyCount">0</div><small>Platos Listos</small></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card p-4">
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-plus-circle text-success"></i> Agregar a Despensa</h5>
+        <form id="addIngredientForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ingrediente</label>
+            <select class="form-select" id="ingSelect" required></select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Cantidad</label>
+              <input type="number" class="form-control" id="ingQty" placeholder="Ej: 500" min="0.1" step="0.1" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Unidad</label>
+              <select class="form-select" id="ingUnit">
+                <option value="gramos">gramos</option>
+                <option value="kilos">kilos</option>
+                <option value="ml">ml</option>
+                <option value="litros">litros</option>
+                <option value="unidades">unidades</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="fa-regular fa-calendar-xmark text-warning"></i> Fecha de vencimiento <small class="text-muted">(opcional)</small></label>
+            <input type="date" class="form-control" id="ingExpiry">
+          </div>
+          <button type="submit" class="btn btn-success w-100 rounded-pill">
+            <i class="fa-solid fa-plus"></i> Agregar
+          </button>
+        </form>
+        <hr>
+        <button class="btn btn-outline-primary w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#newIngredientModal">
+          <i class="fa-solid fa-flask"></i> Crear Nuevo Ingrediente
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="fa-solid fa-boxes-stacked text-primary"></i> Mi Despensa</h5>
+          <span class="badge bg-dark py-2 px-3" id="totalCostBadge">Total: $0</span>
+        </div>
+        <div class="search-wrapper mb-3">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="form-control form-control-sm search-input" id="pantrySearch" placeholder="Buscar ingrediente…" oninput="filterPantryTable(this.value)">
+        </div>
+        <div class="table-responsive" style="max-height:420px;overflow-y:auto">
+          <table class="table align-middle">
+            <thead class="sticky-top bg-white">
+              <tr class="text-muted small fw-bold">
+                <th>Ingrediente</th><th>Cantidad</th><th>Costo Aprox.</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="pantryTableBody"></tbody>
+          </table>
+        </div>
+        <div id="pantryPaginator" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catálogo de Ingredientes -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+          <div>
+            <h5 class="fw-bold mb-0"><i class="fa-solid fa-list text-secondary"></i> Catálogo de Ingredientes</h5>
+            <small class="text-muted"><i class="fa-solid fa-circle-info text-warning"></i> Precios referenciales — promedio supermercados Chile 2025</small>
+          </div>
+          <button id="updatePricesBtn" class="btn btn-sm btn-outline-primary rounded-pill" onclick="updateMarketPrices()">
+            <i class="fa-solid fa-rotate"></i> Actualizar Precios
+          </button>
+        </div>
+        <div class="search-wrapper mb-3">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="form-control form-control-sm search-input" id="ingCatalogSearch" placeholder="Buscar en catálogo…" oninput="filterIngCatalog(this.value)">
+        </div>
+        <div id="ingCatalogPaginator" class="mb-2"></div>
+        <div class="table-responsive" style="max-height:380px;overflow-y:auto">
+          <table class="table table-sm align-middle">
+            <thead class="sticky-top bg-white">
+              <tr class="text-muted small fw-bold">
+                <th>Nombre</th><th>Categoría</th><th>Unidad</th><th>$/base</th><th>Cal./100g</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="ingCatalogBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: RECETAS
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="recipes">
+  <!-- Panel sesión multi-usuario -->
+  <div id="sessionPanel" class="session-panel d-none mb-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="fw-semibold small"><i class="fa-solid fa-users text-primary"></i> ¿Quién come hoy?</span>
+      <div class="d-flex gap-2 flex-wrap" id="sessionMemberChips"></div>
+      <button class="btn btn-xs btn-link p-0 ms-auto text-muted small" onclick="clearSession()">Limpiar</button>
+    </div>
+    <div id="sessionDietInfo" class="mt-1 small text-muted d-none"></div>
+  </div>
+
+  <!-- Banner anti-desperdicio -->
+  <div id="expiryRecipesBanner" class="expiry-recipes-banner d-none mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <span class="fw-bold"><i class="fa-solid fa-hourglass-half text-warning me-2"></i>Ingredientes por vencer — recetas sugeridas</span>
+      <button class="btn btn-xs btn-link text-muted p-0" onclick="document.getElementById('expiryRecipesBanner').classList.add('d-none')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="d-flex gap-2 flex-wrap" id="expiryExpiredChips"></div>
+    <div class="row g-2 mt-1" id="expiryRecipesGrid"></div>
+  </div>
+
+  <!-- Widget nutrición diaria -->
+  <div class="daily-nut-widget" id="dailyNutWidget">
+    <div class="daily-nut-title"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i> Hoy</div>
+    <div class="daily-nut-item">
+      <div class="daily-nut-label">Calorías</div>
+      <div class="daily-nut-bar"><div class="daily-nut-fill" id="dNutCalsBar" style="width:0%;background:#ef4444"></div></div>
+      <div class="daily-nut-value" id="dNutCalsVal" style="color:#ef4444">0 / 2000 kcal</div>
+    </div>
+    <div class="daily-nut-item">
+      <div class="daily-nut-label">Proteínas</div>
+      <div class="daily-nut-bar"><div class="daily-nut-fill" id="dNutProBar" style="width:0%;background:#22c55e"></div></div>
+      <div class="daily-nut-value" id="dNutProVal" style="color:#22c55e">0 / 50 g</div>
+    </div>
+    <div class="daily-nut-item">
+      <div class="daily-nut-label">Carbs</div>
+      <div class="daily-nut-bar"><div class="daily-nut-fill" id="dNutCarbBar" style="width:0%;background:#4f46e5"></div></div>
+      <div class="daily-nut-value" id="dNutCarbVal" style="color:#4f46e5">0 / 250 g</div>
+    </div>
+    <div class="daily-nut-item">
+      <div class="daily-nut-label">Grasas</div>
+      <div class="daily-nut-bar"><div class="daily-nut-fill" id="dNutFatBar" style="width:0%;background:#f59e0b"></div></div>
+      <div class="daily-nut-value" id="dNutFatVal" style="color:#f59e0b">0 / 65 g</div>
+    </div>
+  </div>
+
+  <div id="desktopFilterCard" class="card p-3 mb-4">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label mb-1">Buscar receta</label>
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="form-control form-control-sm search-input" id="filterSearch" placeholder="Escribe para buscar...">
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label mb-1">Tipo</label>
+        <select class="form-select form-select-sm" id="filterType">
+          <option value="all">Todos</option>
+          <option value="entrada">Entrada</option>
+          <option value="comida">Comida</option>
+          <option value="once">Once</option>
+          <option value="postre">Postre</option>
+          <option value="trago">Trago</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label mb-1">Dieta
+          <i class="fa-solid fa-circle-question text-muted ms-1" style="cursor:pointer"
+             data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="bottom"
+             title="<b>🌿 Vegetariano:</b> Sin carne ni pescado, incluye lácteos y huevos<br><b>🌱 Vegano:</b> Sin ningún producto de origen animal<br><b>🌾 Sin Gluten:</b> Sin trigo, avena, cebada ni centeno. Apto para celíacos<br><b>💪 Saludable:</b> Bajo en grasas saturadas y azúcares<br><b>🍬 Diabético:</b> Bajo índice glucémico, sin azúcares refinados"></i>
+        </label>
+        <select class="form-select form-select-sm" id="filterDiet">
+          <option value="all">Todas</option>
+          <option value="vegetariano">🌿 Vegetariano</option>
+          <option value="vegano">🌱 Vegano</option>
+          <option value="sin gluten">🌾 Sin Gluten</option>
+          <option value="saludable">💪 Saludable</option>
+          <option value="diabetico">🍬 Diabético</option>
+        </select>
+      </div>
+      <div class="col-4 col-md-1">
+        <label class="form-label mb-1">Cal.</label>
+        <select class="form-select form-select-sm" id="filterCalories">
+          <option value="all">Todas</option>
+          <option value="low">&lt;400</option>
+          <option value="med">400-800</option>
+          <option value="high">&gt;800</option>
+        </select>
+      </div>
+      <div class="col-4 col-md-1">
+        <label class="form-label mb-1">Pers.</label>
+        <input type="number" class="form-control form-control-sm" id="filterPersons" value="1" min="1" max="20">
+      </div>
+      <div class="col-4 col-md-1">
+        <label class="form-label mb-1"><i class="fa-solid fa-clock"></i></label>
+        <select class="form-select form-select-sm" id="filterTime">
+          <option value="all">Todos</option>
+          <option value="15">≤15m</option>
+          <option value="30">≤30m</option>
+          <option value="45">≤45m</option>
+          <option value="60">≤1h</option>
+          <option value="90">&gt;1.5h</option>
+        </select>
+      </div>
+      <div class="col-8 col-md-1">
+        <label class="form-label mb-1"><i class="fa-solid fa-leaf"></i></label>
+        <select class="form-select form-select-sm" id="filterSeason">
+          <option value="all">Todo</option>
+          <option value="verano">☀️</option>
+          <option value="otono">🍂</option>
+          <option value="invierno">❄️</option>
+          <option value="primavera">🌸</option>
+        </select>
+      </div>
+      <div class="col-4 col-md-1 text-end">
+        <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+        <button class="btn btn-success btn-sm rounded-pill w-100" data-bs-toggle="modal" data-bs-target="#addRecipeModal" title="Agregar receta">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón random + anti-desperdicio + sesión -->
+  <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+    <button class="btn btn-sm btn-outline-warning rounded-pill" id="expiryRecipesBtn" onclick="toggleExpiryRecipes()" title="Ver recetas con ingredientes por vencer">
+      <i class="fa-solid fa-hourglass-half"></i> Por vencer
+      <span class="badge bg-warning text-dark ms-1 d-none" id="expiryCountBadge">0</span>
+    </button>
+    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="toggleSessionPanel()" title="Seleccionar quién come hoy">
+      <i class="fa-solid fa-users"></i> ¿Quién come?
+    </button>
+  </div>
+
+  <div class="d-flex justify-content-center my-3">
+    <button class="btn btn-warning fw-bold rounded-pill px-4 py-2 shadow-sm" onclick="openRouletteModal()">
+      <i class="fa-solid fa-dice me-2"></i>🎲 ¡Sorpréndeme!
+    </button>
+  </div>
+
+  <!-- Botón flotante filtros mobile -->
+  <button id="mobileFilterBtn" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" title="Filtros">
+    <i class="fa-solid fa-sliders"></i>
+    <span class="filter-badge" id="filterActiveBadge">0</span>
+  </button>
+
+  <div id="recipesPaginator" class="mb-3"></div>
+
+  <div class="section-header section-header-ready" id="sectionReady">
+    <div class="section-header-title">
+      <i class="fa-solid fa-check-circle"></i>
+      Puedo Cocinar Ahora
+    </div>
+    <span class="section-count-pill" id="countReady">0 recetas</span>
+  </div>
+  <div class="row" id="recipesReadyGrid"></div>
+
+  <div class="section-header section-header-missing" id="sectionMissing">
+    <div class="section-header-title">
+      <i class="fa-solid fa-cart-shopping"></i>
+      Necesito Comprar
+    </div>
+    <span class="section-count-pill" id="countMissing">0 recetas</span>
+  </div>
+  <div class="row" id="recipesMissingGrid"></div>
+  <div id="recipesPaginatorBottom" class="mt-3 mb-2"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: EVENTOS
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="events">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="fa-solid fa-calendar-star text-danger"></i> Planificador de Eventos</h4>
+    <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#eventPlannerModal">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Planificar un Evento
+    </button>
+  </div>
+  <h5 class="fw-semibold text-muted mb-3">Recetas por Ocasión</h5>
+  <div class="row" id="eventsGrid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: MENÚ SEMANAL
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="menu">
+
+  <!-- ── BARRA DE CONTROLES ── -->
+  <div class="menu-control-bar mb-4">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="menu-ctrl-group">
+        <span class="menu-ctrl-label">👥 Personas</span>
+        <input type="number" class="form-control form-control-sm menu-ctrl-input" id="menuPersons" value="1" min="1" max="20" style="width:64px">
+      </div>
+      <div class="menu-ctrl-group">
+        <span class="menu-ctrl-label">💰 Presupuesto</span>
+        <div class="input-group input-group-sm" style="width:140px">
+          <span class="input-group-text border-0 bg-transparent ps-0">$</span>
+          <input type="number" class="form-control" id="weekBudgetInput" placeholder="opcional">
+        </div>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#dayTypesCollapse">
+          <i class="fa-solid fa-sliders me-1"></i>Por Día
+        </button>
+        <button id="generateMenuBtn" class="btn btn-primary rounded-pill px-4 fw-bold">
+          <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Generar Menú
+        </button>
+      </div>
+    </div>
+    <div class="collapse mt-3" id="dayTypesCollapse">
+      <div class="day-types-panel">
+        <div class="fw-semibold small mb-2 text-muted"><i class="fa-solid fa-utensils me-1"></i>Tipo de plato por día</div>
+        <div class="row g-2" id="dayTypesConfig"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRID DE DÍAS ── -->
+  <div id="weeklyMenuGrid">
+    <div class="menu-empty-state">
+      <div class="menu-empty-icon">📅</div>
+      <h5>Genera tu menú semanal</h5>
+      <p class="text-muted mb-0">Cada día mostrará una sugerencia por tipo de plato</p>
+      <button class="btn btn-primary rounded-pill px-5 mt-3 fw-bold" onclick="document.getElementById('generateMenuBtn').click()">
+        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generar Menú
+      </button>
+    </div>
+  </div>
+
+  <!-- ── BARRA DE ACCIONES (aparece al generar) ── -->
+  <div id="menuActionBar" class="menu-action-bar d-none mt-3">
+    <button class="menu-action-btn" onclick="selectAllMenuItems()" title="Agregar todo al carrito">
+      <i class="fa-solid fa-check-double"></i><span>Seleccionar todo</span>
+    </button>
+    <button class="menu-action-btn green" onclick="shareMenuWhatsapp()" title="Enviar por WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span>
+    </button>
+    <button class="menu-action-btn" onclick="saveCurrentMenu()" title="Guardar este menú">
+      <i class="fa-solid fa-floppy-disk"></i><span>Guardar</span>
+    </button>
+    <button class="menu-action-btn amber" onclick="openFinDeMesModal()" title="Modo fin de mes">
+      <i class="fa-solid fa-piggy-bank"></i><span>Fin de Mes</span>
+    </button>
+    <button class="menu-action-btn cyan" onclick="openNutritionPlanModal()" title="Plan nutricional">
+      <i class="fa-solid fa-dna"></i><span>Plan Nutri</span>
+    </button>
+    <button class="menu-action-btn" onclick="document.getElementById('menuHistoryPanel').classList.toggle('d-none')" title="Historial de menús">
+      <i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span>
+    </button>
+  </div>
+
+  <div id="weeklyNutritionBox"></div>
+
+  <div id="menuHistoryPanel" class="d-none mt-3">
+    <div class="fw-bold mb-3"><i class="fa-solid fa-history me-1"></i>Menús Guardados</div>
+    <div id="menuHistoryItems"></div>
+  </div>
+
+  <!-- Budget Dashboard -->
+  <div class="mt-4" id="budgetDashboard">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="fw-bold mb-0"><i class="fa-solid fa-chart-bar text-primary"></i> Presupuesto Mensual de Cocina</h5>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="document.getElementById('budgetChartArea').classList.toggle('d-none')">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+    </div>
+    <div id="budgetChartArea">
+      <div id="budgetChartContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: FAMILIA
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="familia">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0"><i class="fa-solid fa-users text-primary"></i> Mi Familia</h4>
+      <small class="text-muted">Las alergias de miembros activos se marcan en las recetas.</small>
+    </div>
+    <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#familyModal">
+      <i class="fa-solid fa-user-plus"></i> Agregar Integrante
+    </button>
+  </div>
+  <div class="row" id="familyGrid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: HISTORIAL
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="historial">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left text-secondary"></i> Historial de Cocina</h4>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: COMUNIDAD
+═══════════════════════════════════════════════════════ -->
+<div class="tab-pane fade" id="comunidad">
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-0"><i class="fa-solid fa-star text-warning"></i> Comunidad CocinaMágica</h4>
+      <small class="text-muted">Las recetas mejor valoradas · Comparte y descubre</small>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary rounded-pill btn-sm" onclick="openImportRecipeModal()">
+        <i class="fa-solid fa-file-import"></i> Importar Receta
+      </button>
+    </div>
+  </div>
+
+  <ul class="nav nav-pills mb-4 gap-2" id="communityTabs">
+    <li class="nav-item"><button class="nav-link active" onclick="switchCommunityTab('top', this)"><i class="fa-solid fa-trophy text-warning me-1"></i>Top Valoradas</button></li>
+    <li class="nav-item"><button class="nav-link" onclick="switchCommunityTab('recent', this)"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>Cocinadas Recientemente</button></li>
+    <li class="nav-item"><button class="nav-link" onclick="switchCommunityTab('share', this)"><i class="fa-solid fa-share-nodes text-success me-1"></i>Compartir Receta</button></li>
+  </ul>
+
+  <div id="communityContent"></div>
+</div>
+
+</div><!-- /tab-content -->
+</div><!-- /container-fluid -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: DETALLE RECETA
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="recipeModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0 pb-0">
+        <div class="w-100">
+          <h4 class="fw-bold" id="modalRecipeTitle"></h4>
+          <div class="d-flex gap-2 flex-wrap mb-2">
+            <span id="modalTimeBadge" class="badge bg-light text-dark border"></span>
+            <span id="modalSeasonBadge" class="badge bg-info text-dark"></span>
+            <span id="modalDietTags"></span>
+          </div>
+          <div class="alert alert-danger py-2 d-none" id="modalAllergenAlert" role="alert"></div>
+        </div>
+        <button type="button" class="btn-close ms-2" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="border-bottom px-3">
+        <button class="modal-tab-btn active" id="modalTab-info" onclick="showModalTab('info')"><i class="fa-solid fa-circle-info"></i> Info</button>
+        <button class="modal-tab-btn" id="modalTab-notes" onclick="showModalTab('notes')"><i class="fa-solid fa-note-sticky"></i> Notas</button>
+        <button class="modal-tab-btn" id="modalTab-photo" onclick="showModalTab('photo')"><i class="fa-solid fa-camera"></i> Foto</button>
+        <button class="modal-tab-btn" id="modalTab-video" onclick="showModalTab('video')"><i class="fa-solid fa-play"></i> Video</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Info -->
+        <div id="modalSection-info">
+          <img id="modalImg" src="" style="width:100%;height:280px;object-fit:cover;border-radius:12px;margin-bottom:1rem">
+          <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="macro-box"><div class="macro-val text-danger" id="modKcal">0</div><small>kcal</small></div>
+            <div class="macro-box"><div class="macro-val text-success" id="modPro">0g</div><small>Proteína</small></div>
+            <div class="macro-box"><div class="macro-val text-primary" id="modCarb">0g</div><small>Carbs</small></div>
+            <div class="macro-box"><div class="macro-val text-warning" id="modFat">0g</div><small>Grasas</small></div>
+            <div class="macro-box"><div class="macro-val text-dark" id="modalPortionsCount">1</div><small>personas</small></div>
+            <div class="macro-box"><div class="macro-val text-success">$<span id="modalCost">0</span></div><small>costo</small></div>
+          </div>
+          <div id="modalScaleTips" class="alert alert-warning d-none py-2 mb-3 small"></div>
+          <h6 class="fw-bold"><i class="fa-solid fa-list-check text-primary"></i> Ingredientes</h6>
+          <ul class="list-unstyled mb-3" id="modalIngredientsList"></ul>
+          <div id="missingIngredientsDiv" class="d-none">
+            <h6 class="fw-bold text-danger"><i class="fa-solid fa-cart-plus"></i> Me Faltan</h6>
+            <ul class="list-unstyled d-flex gap-2 flex-wrap mb-3" id="modalMissingList"></ul>
+          </div>
+          <h6 class="fw-bold"><i class="fa-solid fa-book-open text-secondary"></i> Preparación</h6>
+          <p class="text-muted" id="modalInstructions" style="white-space:pre-line"></p>
+          <hr>
+          <h6 class="fw-bold"><i class="fa-solid fa-star text-warning"></i> Calificación</h6>
+          <div class="mb-2" id="modalRatingStars"></div>
+          <input type="text" class="form-control form-control-sm mb-2" id="modalRatingComment" placeholder="Comentario opcional...">
+          <button class="btn btn-sm btn-warning rounded-pill" onclick="setRating(currentModalRecipe.id, Array.from(document.querySelectorAll('#modalRatingStars .star.filled')).length || 5)">
+            Guardar calificación
+          </button>
+          <div class="mt-2" id="modalRatingDisplay"></div>
+        </div>
+
+        <!-- Notas -->
+        <div id="modalSection-notes" class="d-none">
+          <h6 class="fw-bold mb-2"><i class="fa-solid fa-pencil text-warning"></i> Mis notas personales</h6>
+          <textarea class="form-control notes-area mb-2" id="modalNotes" rows="8" placeholder="Trucos, variaciones, recordatorios para esta receta..."></textarea>
+          <button class="btn btn-sm btn-warning rounded-pill" onclick="saveNote()"><i class="fa-solid fa-floppy-disk"></i> Guardar Notas</button>
+          <span class="ms-2 text-success small" id="noteSaveStatus"></span>
+        </div>
+
+        <!-- Video -->
+        <div id="modalSection-video" class="d-none">
+          <h6 class="fw-bold mb-3"><i class="fa-solid fa-play text-danger"></i> Video de la receta</h6>
+          <div class="mb-3">
+            <label class="form-label">URL de YouTube</label>
+            <div class="input-group">
+              <input type="url" class="form-control" id="modalVideoUrl" placeholder="https://youtube.com/watch?v=...">
+              <button class="btn btn-outline-primary" onclick="saveRecipeVideo()"><i class="fa-solid fa-floppy-disk"></i></button>
+            </div>
+            <small class="text-muted">Pega un link de YouTube y se mostrará el video aquí</small>
+          </div>
+          <div id="videoEmbedContainer" class="d-none">
+            <div class="ratio ratio-16x9 rounded-3 overflow-hidden mb-3">
+              <iframe id="videoEmbed" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            </div>
+          </div>
+          <div id="noVideoPlaceholder" class="text-center py-4 text-muted">
+            <i class="fa-brands fa-youtube fs-1 mb-2 d-block" style="color:#ff0000;opacity:.4"></i>
+            <p class="mb-0">Agrega una URL de YouTube para ver el video mientras cocinas</p>
+          </div>
+        </div>
+
+        <!-- Foto -->
+        <div id="modalSection-photo" class="d-none">
+          <h6 class="fw-bold mb-3"><i class="fa-solid fa-camera text-primary"></i> Mi foto de esta receta</h6>
+          <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+            <img id="photoPreview" src="" class="d-none mb-3 rounded-3" style="max-height:250px;width:100%;object-fit:cover">
+            <div id="photoUploadHint">
+              <i class="fa-solid fa-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
+              <p class="text-muted mb-1">Haz click para subir tu foto</p>
+              <small class="text-muted">Formatos: JPG, PNG, HEIC</small>
+            </div>
+            <input type="file" id="photoInput" accept="image/*" class="d-none">
+          </div>
+          <button class="btn btn-sm btn-outline-danger rounded-pill mt-2 d-none" id="deletePhotoBtn" onclick="deleteOwnPhoto()">
+            <i class="fa-solid fa-trash"></i> Eliminar foto
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer border-0 d-flex justify-content-between flex-wrap gap-2">
+        <button class="btn btn-outline-success rounded-pill" id="btnMarkCooked" onclick="markAsCooked()">
+          <i class="fa-solid fa-fire-burner"></i> Marcar como cocinado
+        </button>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-outline-purple rounded-pill" onclick="openCookingMode()" title="Modo manos libres con lectura en voz alta">
+            <i class="fa-solid fa-microphone"></i> Modo Cocina
+          </button>
+          <button class="btn btn-outline-secondary rounded-pill" onclick="shareRecipeMissingList()">
+            <i class="fa-brands fa-whatsapp text-success"></i> Compartir Lista
+          </button>
+          <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: NUEVA RECETA
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="addRecipeModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0"><h5 class="fw-bold"><i class="fa-solid fa-book-medical text-success"></i> Nueva Receta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="createRecipeForm">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Nombre *</label>
+              <input type="text" class="form-control" id="newRecName" required placeholder="Ej: Pastel de Choclo">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Tipo *</label>
+              <select class="form-select" id="newRecType" required>
+                <option value="comida">Comida</option>
+                <option value="entrada">Entrada</option>
+                      <option value="once">Once</option>
+                <option value="postre">Postre</option>
+                <option value="trago">Trago</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Base <span id="lblBaseP">1</span> persona(s)</label>
+              <input type="number" class="form-control" id="newRecBasePortions" value="1" min="1" max="20">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold"><i class="fa-solid fa-clock"></i> Tiempo (min)</label>
+              <input type="number" class="form-control" id="newRecCookTime" value="30" min="5" max="480">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold"><i class="fa-solid fa-leaf"></i> Temporada</label>
+              <select class="form-select" id="newRecSeason">
+                <option value="all">Todo el año</option>
+                <option value="verano">☀️ Verano</option>
+                <option value="otono">🍂 Otoño</option>
+                <option value="invierno">❄️ Invierno</option>
+                <option value="primavera">🌸 Primavera</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Dietas <small class="text-muted">(Ctrl+Click)</small></label>
+              <select class="form-select" id="newRecDiets" multiple size="5">
+                <option value="vegetariano">🌿 Vegetariano</option>
+                <option value="vegano">🌱 Vegano</option>
+                <option value="sin gluten">🌾 Sin Gluten</option>
+                <option value="saludable">💪 Saludable</option>
+                <option value="diabetico">🍬 Diabético</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-bold mb-0">Ingredientes</label>
+              <button type="button" class="btn btn-sm btn-outline-success rounded-pill" id="addIngRowBtn"><i class="fa-solid fa-plus"></i> Agregar fila</button>
+            </div>
+            <div id="newRecIngredientsDiv"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Instrucciones</label>
+            <textarea class="form-control" id="newRecInst" rows="4" placeholder="Describe paso a paso cómo preparar este plato..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold"><i class="fa-brands fa-youtube text-danger"></i> Video de YouTube <small class="text-muted fw-normal">(opcional)</small></label>
+            <input type="url" class="form-control" id="newRecVideo" placeholder="https://youtube.com/watch?v=...">
+          </div>
+          <button type="submit" class="btn btn-success w-100 rounded-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> Guardar Receta</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: NUEVO INGREDIENTE
+══════════════════════════════════════════════════════════════ -->
+<!-- Modal: Agregar ingrediente rápido desde catálogo -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0 pb-1">
+        <h6 class="fw-bold mb-0" id="qaModalTitle"><i class="fa-solid fa-plus-circle text-success"></i> Agregar a Despensa</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <input type="hidden" id="qaIngId">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold mb-1">Cantidad</label>
+          <input type="number" class="form-control" id="qaQty" placeholder="Ej: 500" min="0.01" step="0.01">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold mb-1">Unidad</label>
+          <select class="form-select" id="qaUnit"></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold mb-1">Vencimiento <span class="text-muted">(opcional)</span></label>
+          <input type="date" class="form-control" id="qaExpiry">
+        </div>
+        <button class="btn btn-success w-100 rounded-pill fw-bold" onclick="confirmQuickAdd()">
+          <i class="fa-solid fa-plus"></i> Agregar a Despensa
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newIngredientModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0"><h5 class="fw-bold"><i class="fa-solid fa-flask text-primary"></i> Nuevo Ingrediente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="newIngredientForm">
+          <div class="mb-3"><label class="form-label fw-bold">Nombre *</label><input type="text" class="form-control" id="newIngName" required placeholder="Ej: Palta"></div>
+          <div class="row g-2 mb-3">
+            <div class="col-6"><label class="form-label fw-bold">Unidad Base *</label>
+              <select class="form-select" id="newIngBaseUnit" required>
+                <option value="g">gramos (g)</option>
+                <option value="ml">mililitros (ml)</option>
+                <option value="unidades">unidades</option>
+              </select>
+            </div>
+            <div class="col-6"><label class="form-label fw-bold">Precio por kg/L/unidad ($)</label><input type="number" class="form-control" id="newIngPrice" required placeholder="Ej: 3000"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Categoría</label>
+            <select class="form-select" id="newIngCategory">
+              <option value="verduras">🥦 Verduras</option>
+              <option value="frutas">🍎 Frutas</option>
+              <option value="carnes">🥩 Carnes</option>
+              <option value="pescados">🐟 Pescados</option>
+              <option value="lacteos">🥛 Lácteos</option>
+              <option value="abarrotes">🥫 Abarrotes</option>
+              <option value="panaderia">🍞 Panadería</option>
+              <option value="bebestibles">🍷 Bebestibles</option>
+              <option value="otros">📦 Otros</option>
+            </select>
+          </div>
+          <hr>
+          <p class="fw-bold mb-2"><i class="fa-solid fa-fire-flame-curved text-danger"></i> Nutrición <small class="fw-normal text-muted">(por 100g/ml o por unidad)</small></p>
+          <div class="row g-2 mb-3">
+            <div class="col-6"><label class="form-label small">Calorías (kcal)</label><input type="number" class="form-control form-control-sm" id="newIngCal" placeholder="0"></div>
+            <div class="col-6"><label class="form-label small">Proteína (g)</label><input type="number" class="form-control form-control-sm" id="newIngP" placeholder="0"></div>
+            <div class="col-6"><label class="form-label small">Carbohidratos (g)</label><input type="number" class="form-control form-control-sm" id="newIngC" placeholder="0"></div>
+            <div class="col-6"><label class="form-label small">Grasas (g)</label><input type="number" class="form-control form-control-sm" id="newIngF" placeholder="0"></div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fa-solid fa-plus"></i> Crear Ingrediente</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: CARRITO
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="cartModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header cart-modal-header">
+        <div>
+          <h5 class="fw-bold mb-0"><i class="fa-solid fa-cart-shopping me-2"></i>Lista de Compras</h5>
+          <small class="opacity-75">
+            <span id="cartModalCount">0</span> receta(s) ·
+            <span id="cartMissingCount">0</span> item(s) a comprar
+          </small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+
+        <!-- Pills de recetas seleccionadas -->
+        <div class="px-3 pt-3 pb-1 d-flex flex-wrap gap-2" id="cartRecipePills"></div>
+
+        <!-- Mensaje todo OK -->
+        <div id="cartAllGoodMsg" class="text-center py-5 px-3 d-none">
+          <div style="font-size:3.5rem">🎉</div>
+          <h5 class="fw-bold mt-2">¡Ya tienes todo!</h5>
+          <p class="text-muted mb-0">Tu despensa tiene todos los ingredientes para estas recetas.</p>
+        </div>
+
+        <!-- Sección: Necesitas comprar -->
+        <div id="cartMissingListContainer">
+          <div class="cart-section-label buy">
+            <span><i class="fa-solid fa-cart-plus me-2"></i>Necesitas comprar</span>
+            <span class="badge rounded-pill" style="background:#dc2626" id="cartBuyCountBadge">0</span>
+          </div>
+          <ul class="list-group list-group-flush" id="cartMissingList" style="margin:0 .75rem .5rem"></ul>
+        </div>
+
+        <!-- Sección: Ya tienes -->
+        <div id="cartHaveContainer" class="d-none">
+          <div class="cart-section-label have" style="cursor:pointer" onclick="document.getElementById('cartHaveList').classList.toggle('d-none');this.querySelector('i.toggle-icon').classList.toggle('fa-chevron-down');this.querySelector('i.toggle-icon').classList.toggle('fa-chevron-up')">
+            <span><i class="fa-solid fa-check-circle me-2"></i>Ya tienes en casa</span>
+            <i class="fa-solid fa-chevron-down toggle-icon text-muted"></i>
+          </div>
+          <ul class="list-group list-group-flush d-none" id="cartHaveList" style="margin:0 .75rem .5rem"></ul>
+        </div>
+
+        <!-- Resumen de costo -->
+        <div id="cartCostSummary" class="cart-cost-box d-none">
+          <span class="fw-bold"><i class="fa-solid fa-coins text-warning me-2"></i>Costo estimado a comprar</span>
+          <span class="fw-bold fs-5 text-success" id="cartTotalCost">$0</span>
+        </div>
+      </div>
+
+      <div class="modal-footer border-0 d-flex justify-content-between flex-wrap gap-2">
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+          <button class="btn btn-outline-secondary rounded-pill" onclick="printShoppingList()" title="Imprimir lista de compras">
+            <i class="fa-solid fa-print"></i> Imprimir
+          </button>
+          <button class="btn btn-outline-primary rounded-pill" onclick="addWeeklyMenuToCart()" title="Agregar todos los ingredientes faltantes del menú semanal">
+            <i class="fa-solid fa-calendar-plus"></i> Menú Semanal
+          </button>
+        </div>
+        <button class="btn btn-success rounded-pill px-4 fw-semibold" id="btnCartWhatsapp">
+          <i class="fa-brands fa-whatsapp me-1"></i> Enviar por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: PLANIFICADOR DE EVENTO
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="eventPlannerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold"><i class="fa-solid fa-champagne-glasses text-warning"></i> Planificador de Evento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">¿Cuántos invitados?</label>
+            <input type="number" class="form-control" id="eventPersons" value="4" min="1" max="500" onchange="renderEventPlanner();updateEventTotal();updateEventSplit()">
+          </div>
+          <div class="col-md-8">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="text-center p-2 rounded-3 flex-fill" style="background:var(--bs-light)">
+                  <small class="text-muted d-block">Costo total estimado</small>
+                  <div class="fw-bold fs-5" id="eventTotalCost">$0</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center p-2 rounded-3" style="background:var(--bs-light)">
+                  <small class="text-muted d-block">Por persona</small>
+                  <div class="fw-bold fs-5 text-success" id="eventCostPerPerson">$0</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <button class="btn btn-success w-100 rounded-pill btn-sm" onclick="showEventShoppingList()">
+                  <i class="fa-brands fa-whatsapp"></i> Lista WhatsApp
+                </button>
+              </div>
+              <div class="col-6">
+                <button class="btn btn-outline-secondary w-100 rounded-pill btn-sm" onclick="printEventMenu()">
+                  <i class="fa-solid fa-print"></i> Imprimir Menú
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="event-course-slot" id="event-entrada">
+              <div class="fs-2">🥗</div><div class="fw-bold text-muted">Entrada</div><small class="text-muted">Click para elegir</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="event-course-slot" id="event-principal">
+              <div class="fs-2">🍲</div><div class="fw-bold text-muted">Plato Principal</div><small class="text-muted">Click para elegir</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="event-course-slot" id="event-postre">
+              <div class="fs-2">🍮</div><div class="fw-bold text-muted">Postre</div><small class="text-muted">Click para elegir</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="event-course-slot" id="event-trago">
+              <div class="fs-2">🍹</div><div class="fw-bold text-muted">Trago</div><small class="text-muted">Click para elegir</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-outline-secondary rounded-pill" onclick="eventPlan={entrada:null,principal:null,postre:null,trago:null};renderEventPlanner()">Limpiar</button>
+        <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: SELECTOR PLATO EVENTO
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="eventCourseModal" tabindex="-1" style="z-index:1060">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold" id="eventCourseModalTitle">Elegir plato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="eventCourseList"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: VISITAS URGENTES
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="emergencyModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0" style="background:var(--warning)">
+        <h5 class="fw-bold"><i class="fa-solid fa-bell-concierge"></i> ¡Llegaron Visitas!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="emergencyResult"></div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-warning rounded-pill" onclick="bootstrap.Modal.getInstance(document.getElementById('emergencyModal')).hide();setTimeout(openEmergencyModal,400)">
+          <i class="fa-solid fa-arrows-rotate"></i> Otra Combinación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: FAMILIA
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="familyModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold"><i class="fa-solid fa-user-plus text-primary"></i> Integrante de Familia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="familyForm">
+          <input type="hidden" id="familyMemberId" value="">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nombre *</label>
+            <input type="text" class="form-control" id="familyName" required placeholder="Ej: Mamá, Juan, Abuela...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Dietas / Preferencias</label>
+            <div class="d-flex flex-wrap gap-3 pt-1" id="familyDietsCheckboxes">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="vegetariano" id="fdc_vegetariano">
+                <label class="form-check-label" for="fdc_vegetariano">🌿 Vegetariano</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="vegano" id="fdc_vegano">
+                <label class="form-check-label" for="fdc_vegano">🌱 Vegano</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="sin gluten" id="fdc_singluten">
+                <label class="form-check-label" for="fdc_singluten">🌾 Sin Gluten</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="saludable" id="fdc_saludable">
+                <label class="form-check-label" for="fdc_saludable">💪 Saludable</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="diabetico" id="fdc_diabetico">
+                <label class="form-check-label" for="fdc_diabetico">🍬 Diabético</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Alergias <small class="fw-normal text-muted">(Ctrl+Click para varios)</small></label>
+            <select class="form-select" id="familyAllergiesSelect" multiple size="6"></select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: CONFIGURACIÓN GENERAL
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="fw-bold mb-0"><i class="fa-solid fa-gear"></i> Configuración</h5>
+          <small class="text-muted">Personaliza tu experiencia en CocinaMágica</small>
+        </div>
+        <button type="button" class="btn-close ms-3" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-0">
+
+        <!-- Settings tabs -->
+        <div class="settings-tabs">
+          <button class="settings-tab-btn active" onclick="showSettingsTab('apariencia',this)">🎨 Apariencia</button>
+          <button class="settings-tab-btn" onclick="showSettingsTab('nutricion',this)">🥗 Nutrición</button>
+          <button class="settings-tab-btn" onclick="showSettingsTab('hogar',this)">🏠 Hogar</button>
+          <button class="settings-tab-btn" onclick="showSettingsTab('recordatorio',this)">🔔 Recordatorio</button>
+          <button class="settings-tab-btn" onclick="showSettingsTab('datos',this)">💾 Datos</button>
+        </div>
+
+        <!-- TAB: Apariencia -->
+        <div class="settings-section active" id="stab-apariencia">
+          <div class="settings-divider">Tema de Color</div>
+          <div class="theme-swatches mb-3" id="themeSwatches">
+            <div class="theme-swatch-wrap active" data-color="warm" onclick="applyColorTheme('warm',this)">
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#e8470a,#f59e0b)"></div>
+              <span class="theme-swatch-label">Cálido</span>
+            </div>
+            <div class="theme-swatch-wrap" data-color="ocean" onclick="applyColorTheme('ocean',this)">
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)"></div>
+              <span class="theme-swatch-label">Océano</span>
+            </div>
+            <div class="theme-swatch-wrap" data-color="forest" onclick="applyColorTheme('forest',this)">
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#16a34a,#84cc16)"></div>
+              <span class="theme-swatch-label">Bosque</span>
+            </div>
+            <div class="theme-swatch-wrap" data-color="lavender" onclick="applyColorTheme('lavender',this)">
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"></div>
+              <span class="theme-swatch-label">Lavanda</span>
+            </div>
+            <div class="theme-swatch-wrap" data-color="rose" onclick="applyColorTheme('rose',this)">
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#e11d48,#db2777)"></div>
+              <span class="theme-swatch-label">Rosa</span>
+            </div>
+          </div>
+
+          <div class="settings-divider">Modo</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Modo oscuro</div><div class="settings-row-sub">Activa el tema oscuro para reducir fatiga visual</div></div>
+            <div class="settings-row-control">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="settingsDarkMode" role="switch" onchange="toggleDarkModeFromSettings(this)">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-divider">Tamaño de Texto</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Tamaño de fuente</div><div class="settings-row-sub">Ajusta el tamaño del texto en toda la app</div></div>
+            <div class="settings-row-control">
+              <div class="font-size-btns">
+                <button class="font-size-btn" data-size="small" onclick="applyFontSize('small',this)">A</button>
+                <button class="font-size-btn active" data-size="normal" onclick="applyFontSize('normal',this)" style="font-size:1rem">A</button>
+                <button class="font-size-btn" data-size="large" onclick="applyFontSize('large',this)" style="font-size:1.2rem">A</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-divider">Animaciones</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Animaciones de tarjetas</div><div class="settings-row-sub">Efecto de entrada al cargar recetas</div></div>
+            <div class="settings-row-control">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="settingAnimations" role="switch" checked onchange="toggleAnimations(this)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Nutrición -->
+        <div class="settings-section" id="stab-nutricion">
+          <div class="settings-divider">Metas Diarias Personales</div>
+          <p class="text-muted small">Estas metas se usan en el widget de nutrición del día.</p>
+          <div class="settings-row">
+            <div><div class="settings-row-label"><i class="fa-solid fa-fire" style="color:#ef4444"></i> Calorías diarias</div></div>
+            <input type="number" class="form-control goal-input" id="goalCals" value="2000" min="800" max="5000" step="50">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label"><i class="fa-solid fa-drumstick-bite" style="color:#22c55e"></i> Proteínas (g)</div></div>
+            <input type="number" class="form-control goal-input" id="goalPro" value="50" min="10" max="300">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label"><i class="fa-solid fa-wheat-awn" style="color:#4f46e5"></i> Carbohidratos (g)</div></div>
+            <input type="number" class="form-control goal-input" id="goalCarbs" value="250" min="50" max="500">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label"><i class="fa-solid fa-droplet" style="color:#f59e0b"></i> Grasas (g)</div></div>
+            <input type="number" class="form-control goal-input" id="goalFat" value="65" min="10" max="200">
+          </div>
+          <div class="settings-divider">Dieta Preferida</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Filtrar recetas por defecto</div><div class="settings-row-sub">Se aplicará automáticamente al abrir la app</div></div>
+            <select class="form-select form-select-sm" style="width:160px" id="settingDefaultDiet">
+              <option value="all">Sin filtro</option>
+              <option value="vegetariano">🌿 Vegetariano</option>
+              <option value="vegano">🌱 Vegano</option>
+              <option value="sin gluten">🌾 Sin Gluten</option>
+              <option value="saludable">💪 Saludable</option>
+              <option value="diabetico">🍬 Diabético</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TAB: Hogar -->
+        <div class="settings-section" id="stab-hogar">
+          <div class="settings-divider">Tu Hogar</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Nombre del hogar</div><div class="settings-row-sub">Se muestra en el banner principal</div></div>
+            <input type="text" class="form-control" style="width:180px" id="settingHouseName" placeholder="Mi Cocina">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Personas en casa</div><div class="settings-row-sub">Valor por defecto al filtrar recetas</div></div>
+            <input type="number" class="form-control goal-input" id="settingDefaultPersons" value="2" min="1" max="20">
+          </div>
+          <div class="settings-divider">Alertas de Vencimiento</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Alertar con anticipación de</div><div class="settings-row-sub">Días antes del vencimiento para mostrar alerta</div></div>
+            <select class="form-select form-select-sm" style="width:120px" id="settingExpiryDays">
+              <option value="1">1 día</option>
+              <option value="3" selected>3 días</option>
+              <option value="5">5 días</option>
+              <option value="7">1 semana</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Alertas de alérgenos</div><div class="settings-row-sub">Mostrar advertencia en recetas con alérgenos familiares</div></div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="settingAllergenAlert" role="switch" checked>
+            </div>
+          </div>
+          <div class="settings-divider">Vista de Recetas</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Mostrar recetas cocinadas recientemente</div><div class="settings-row-sub">Con badge "Reciente" en las últimas 2 semanas</div></div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="settingShowRecent" role="switch" checked>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Efecto gris en recetas incompletas</div><div class="settings-row-sub">Las recetas a las que faltan ingredientes se muestran en gris</div></div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="settingGrayscale" role="switch" checked>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Recordatorio -->
+        <div class="settings-section" id="stab-recordatorio">
+          <div class="settings-divider">Recordatorio Diario</div>
+          <p class="text-muted small">Recibe una notificación del navegador con el menú del día.</p>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Hora del recordatorio</div></div>
+            <input type="time" class="form-control" style="width:140px" id="reminderTime" value="18:00">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Activar recordatorio</div><div class="settings-row-sub">El navegador pedirá permiso la primera vez</div></div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="reminderActive" role="switch">
+            </div>
+          </div>
+          <div class="alert alert-info small py-2 mt-3">
+            <i class="fa-solid fa-circle-info"></i> Necesitas tener la pestaña abierta para recibir la notificación.
+          </div>
+        </div>
+
+        <!-- TAB: Datos -->
+        <div class="settings-section" id="stab-datos">
+          <div class="settings-divider">Exportar</div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Exportar despensa</div><div class="settings-row-sub">Descarga un JSON con todos tus ingredientes actuales</div></div>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="exportPantry()"><i class="fa-solid fa-download"></i> Exportar</button>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-label">Exportar historial</div><div class="settings-row-sub">Lista de todas las recetas cocinadas</div></div>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="exportHistory()"><i class="fa-solid fa-download"></i> Exportar</button>
+          </div>
+          <div class="settings-divider mt-3">Zona de Peligro</div>
+          <div class="danger-zone">
+            <div class="settings-row" style="border:none;padding:.5rem 0">
+              <div><div class="settings-row-label text-danger">Limpiar historial de cocina</div><div class="settings-row-sub">No podrás recuperarlo</div></div>
+              <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="confirmClearHistory()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+            </div>
+            <div class="settings-row" style="border:none;padding:.5rem 0">
+              <div><div class="settings-row-label text-danger">Vaciar despensa</div><div class="settings-row-sub">Elimina todos los ingredientes de tu despensa</div></div>
+              <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="confirmClearPantry()"><i class="fa-solid fa-trash"></i> Vaciar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 justify-content-between">
+        <small class="text-muted">Los cambios se guardan automáticamente</small>
+        <div class="d-flex gap-2">
+          <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+          <button class="btn btn-warning rounded-pill" onclick="saveAllSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Todo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Offcanvas filtros (mobile) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="filterOffcanvas" style="background:var(--card-bg);color:var(--text)">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold"><i class="fa-solid fa-sliders text-primary me-2"></i>Filtros</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="mb-3">
+      <label class="form-label">Buscar</label>
+      <div class="search-wrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" class="form-control search-input" id="filterSearchMobile" placeholder="Escribe para buscar...">
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Tipo</label>
+      <select class="form-select" id="filterTypeMobile">
+        <option value="all">Todos</option>
+        <option value="entrada">Entrada</option>
+        <option value="comida">Comida</option>
+        <option value="plato">Plato</option>
+        <option value="once">Once</option>
+        <option value="postre">Postre</option>
+        <option value="trago">Trago</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Dieta</label>
+      <select class="form-select" id="filterDietMobile">
+        <option value="all">Todas</option>
+        <option value="vegetariano">🌿 Vegetariano</option>
+        <option value="vegano">🌱 Vegano</option>
+        <option value="sin gluten">🌾 Sin Gluten</option>
+        <option value="saludable">💪 Saludable</option>
+        <option value="diabetico">🍬 Diabético</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Calorías</label>
+      <select class="form-select" id="filterCaloriesMobile">
+        <option value="all">Todas</option>
+        <option value="low">Bajo (&lt;400 kcal)</option>
+        <option value="med">Medio (400-800)</option>
+        <option value="high">Alto (&gt;800 kcal)</option>
+      </select>
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="form-label">Tiempo</label>
+        <select class="form-select" id="filterTimeMobile">
+          <option value="all">Cualquier tiempo</option>
+          <option value="15">≤ 15 min</option>
+          <option value="30">≤ 30 min</option>
+          <option value="45">≤ 45 min</option>
+          <option value="60">≤ 1 hora</option>
+          <option value="90">Más de 1.5h</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Temporada</label>
+        <select class="form-select" id="filterSeasonMobile">
+          <option value="all">Todas</option>
+          <option value="verano">☀️ Verano</option>
+          <option value="otono">🍂 Otoño</option>
+          <option value="invierno">❄️ Invierno</option>
+          <option value="primavera">🌸 Primavera</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-secondary rounded-pill w-100" onclick="clearMobileFilters()">
+      <i class="fa-solid fa-rotate-left"></i> Limpiar Filtros
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: FIN DE MES
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="finDeMesModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="fw-bold mb-0">💰 Modo Fin de Mes</h5>
+          <small class="text-muted">Máximo provecho con lo que tienes</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="finDeMesContent">
+        <div class="text-center py-4 text-muted">Analizando tu despensa…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: DIARIO DE COCINA (Foto + Nota)
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="cookDiaryModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold mb-0" id="cookDiaryRecipeName">Mi Cocinada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📷 Foto del plato</label>
+          <input type="file" class="form-control" id="cookDiaryPhotoInput" accept="image/*">
+          <div id="cookDiaryPhotoPreview" class="mt-2"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📝 Nota personal</label>
+          <textarea class="form-control" id="cookDiaryNote" rows="3" placeholder="¿Cómo quedó? ¿Cambiarías algo?"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">⭐ Valoración</label>
+          <div id="cookDiaryStars" class="d-flex gap-2 fs-4">
+            <span class="diary-star cursor-pointer" data-val="1" onclick="setDiaryStar(1)">☆</span>
+            <span class="diary-star cursor-pointer" data-val="2" onclick="setDiaryStar(2)">☆</span>
+            <span class="diary-star cursor-pointer" data-val="3" onclick="setDiaryStar(3)">☆</span>
+            <span class="diary-star cursor-pointer" data-val="4" onclick="setDiaryStar(4)">☆</span>
+            <span class="diary-star cursor-pointer" data-val="5" onclick="setDiaryStar(5)">☆</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success rounded-pill" onclick="saveCookDiary()">
+          <i class="fa-solid fa-floppy-disk me-1"></i>Guardar recuerdo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: RULETA SORPRÉNDEME
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="rouletteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0 justify-content-center">
+        <h5 class="fw-bold">🎲 ¡Sorpréndeme!</h5>
+      </div>
+      <div class="modal-body pb-2">
+        <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn active" data-type="all" onclick="setRouletteType('all',this)">✨ Todos</button>
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn" data-type="comida" onclick="setRouletteType('comida',this)">🍽️ Comida</button>
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn" data-type="entrada" onclick="setRouletteType('entrada',this)">🥗 Entrada</button>
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn" data-type="once" onclick="setRouletteType('once',this)">☕ Once</button>
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn" data-type="postre" onclick="setRouletteType('postre',this)">🍰 Postre</button>
+          <button class="btn btn-sm rounded-pill btn-outline-secondary roulette-type-btn" data-type="trago" onclick="setRouletteType('trago',this)">🍹 Trago</button>
+        </div>
+        <div id="rouletteSpinner" class="roulette-spinner mb-3">
+          <div class="roulette-emoji">🍳</div>
+        </div>
+        <div id="rouletteResult" class="d-none text-start">
+          <div id="rouletteCards"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center gap-2">
+        <button class="btn btn-outline-secondary rounded-pill" onclick="spinRoulette()">
+          <i class="fa-solid fa-rotate-right me-1"></i>Otra vez
+        </button>
+        <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: PLAN NUTRICIONAL
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="nutritionPlanModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="fw-bold mb-0"><i class="fa-solid fa-dna text-info me-2"></i>Plan Nutricional</h5>
+          <small class="text-muted">Menú de 7 días según tu objetivo</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-4" id="nutritionGoalSelector">
+          <div class="col-4">
+            <div class="nutrition-goal-card" data-goal="lose" onclick="selectNutritionGoal('lose',this)">
+              <div class="fs-2">📉</div>
+              <div class="fw-bold">Perder peso</div>
+              <div class="text-muted small">~1.500 kcal/día</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="nutrition-goal-card active" data-goal="maintain" onclick="selectNutritionGoal('maintain',this)">
+              <div class="fs-2">⚖️</div>
+              <div class="fw-bold">Mantenerme</div>
+              <div class="text-muted small">~2.000 kcal/día</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="nutrition-goal-card" data-goal="gain" onclick="selectNutritionGoal('gain',this)">
+              <div class="fs-2">💪</div>
+              <div class="fw-bold">Ganar músculo</div>
+              <div class="text-muted small">~2.500 kcal + proteína</div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-3 align-items-center mb-4">
+          <div>
+            <label class="form-label small fw-semibold">Personas</label>
+            <input type="number" class="form-control form-control-sm" id="nutPlanPersons" value="1" min="1" max="10" style="width:70px">
+          </div>
+          <div class="ms-auto">
+            <button class="btn btn-primary rounded-pill px-4" onclick="generateNutritionPlan()">
+              <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Generar Plan
+            </button>
+          </div>
+        </div>
+        <div id="nutritionPlanResult"></div>
+      </div>
+      <div class="modal-footer border-0 d-none" id="nutritionPlanFooter">
+        <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-success rounded-pill" onclick="applyNutritionPlan()">
+          <i class="fa-solid fa-calendar-check me-1"></i>Usar este menú
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: IMPORTAR RECETA (Comunidad)
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="importRecipeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:var(--card-bg);color:var(--text)">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold"><i class="fa-solid fa-file-import text-primary"></i> Importar Receta</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Pega aquí el código JSON de una receta compartida por otro usuario de CocinaMágica.</p>
+        <textarea class="form-control font-monospace" id="importRecipeJSON" rows="10" placeholder='{"name":"Nombre","type":"comida","instructions":"...", ...}'></textarea>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary rounded-pill" onclick="importRecipeFromJSON()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Importar Receta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OVERLAY: MODO COCINA (manos libres)
+══════════════════════════════════════════════════════════════ -->
+<div id="cookingModeOverlay" class="cooking-mode-overlay d-none" role="dialog">
+  <div class="cooking-mode-header">
+    <div class="d-flex align-items-center gap-3">
+      <span class="cooking-mode-recipe-name" id="cmRecipeName"></span>
+      <span class="badge bg-light text-dark" id="cmStepCounter">Paso 1 / 1</span>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-light rounded-pill" onclick="toggleCookingVoice()" id="cmVoiceBtn" title="Leer en voz alta">
+        <i class="fa-solid fa-microphone"></i> Voz
+      </button>
+      <button class="btn btn-sm btn-outline-light rounded-pill" onclick="closeCookingMode()">
+        <i class="fa-solid fa-xmark"></i> Cerrar
+      </button>
+    </div>
+  </div>
+  <div class="cooking-mode-body">
+    <div class="cooking-mode-step-text" id="cmStepText">
+      Cargando instrucciones...
+    </div>
+  </div>
+  <div class="cooking-mode-footer">
+    <button class="btn btn-cooking-nav" id="cmPrevBtn" onclick="cookingModeStep(-1)" disabled>
+      <i class="fa-solid fa-chevron-left"></i> Anterior
+    </button>
+    <div class="cooking-mode-progress">
+      <div class="cooking-mode-progress-bar" id="cmProgressBar" style="width:0%"></div>
+    </div>
+    <button class="btn btn-cooking-nav" id="cmNextBtn" onclick="cookingModeStep(1)">
+      Siguiente <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<!-- Carrito flotante -->
+<div id="cartFloatingBtn" class="cart-floating-btn d-none" onclick="showCartModal()">
+  <i class="fa-solid fa-basket-shopping"></i>
+  <span id="cartFloatingCount">0</span>
+  <span class="cart-floating-label">en lista</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+<script>
+  document.getElementById('eventPlannerModal').addEventListener('show.bs.modal', renderEventPlanner);
+  document.getElementById('settingsModal').addEventListener('show.bs.modal', () => { populateSettingsUI(); showSettingsTab('apariencia', document.querySelector('.settings-tab-btn')); });
+  document.querySelectorAll('[data-bs-target="#menu"]').forEach(btn => btn.addEventListener('click', () => setTimeout(renderBudgetChart, 200)));
+  document.getElementById('rouletteCookBtn').addEventListener('click', () => {
+    if (!rouletteSelectedRecipe) return;
+    bootstrap.Modal.getInstance(document.getElementById('rouletteModal')).hide();
+    setTimeout(() => {
+      const missing = canCookRecipe(rouletteSelectedRecipe, 1);
+      openModal(rouletteSelectedRecipe, 1, missing);
+    }, 300);
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+  });
+</script>
+</body>
+</html>

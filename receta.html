@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocina Mágica - Despensa Inteligente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #fdf8f5; --text-color: #4a4a4a; --nav-bg: #ffffff; 
+            --card-bg: #ffffff; --card-border: #fcece3; --primary-color: #ffb7b2; 
+            --secondary-color: #a0c4ff; --success-color: #b9fbc0; --danger-color: #ffcbf2; 
+            --warning-color: #fbf8cc; --input-bg: #ffffff; --input-text: #4a4a4a;
+        }
+        [data-theme="dark"] {
+            --bg-color: #16161a; --text-color: #e0e0e0; --nav-bg: #1f1f2e;
+            --card-bg: #242433; --card-border: #16161a; --primary-color: #ff7b72;
+            --secondary-color: #5a8dee; --success-color: #2a9d8f; --danger-color: #e63946; 
+            --warning-color: #e9c46a; --input-bg: #1f1f2e; --input-text: #e0e0e0;
+        }
+
+        body { background-color: var(--bg-color); color: var(--text-color); transition: all 0.3s ease; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .navbar { background-color: var(--nav-bg) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .nav-pills .nav-link { color: var(--text-color); border-radius: 30px; margin-right: 8px; font-weight: 600; padding: 8px 20px; transition: all 0.2s; border: 1px solid transparent; }
+        .nav-pills .nav-link:hover { background-color: var(--card-border); }
+        .nav-pills .nav-link.active { background-color: var(--primary-color); color: #333; box-shadow: 0 4px 10px rgba(255, 183, 178, 0.4); border-color: transparent; }
+        
+        .hero-banner { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 20px; padding: 3rem 2rem; color: #333; text-align: center; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .hero-title { font-weight: 800; font-size: 2.5rem; letter-spacing: -1px; }
+        .step-box { background: rgba(255,255,255,0.9); border-radius: 15px; padding: 1.5rem; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s;}
+        .step-box:hover { transform: translateY(-5px); }
+        .step-icon { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+
+        .card { background-color: var(--card-bg); border-color: var(--card-border); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow: hidden;}
+        .card-header { background-color: transparent; border-bottom: 2px solid var(--card-border); font-weight: 700; padding: 1rem 1.5rem; }
+        .form-control, .form-select { background-color: var(--input-bg); color: var(--input-text); border: 2px solid var(--card-border); border-radius: 10px; }
+        
+        .btn { border-radius: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; padding: 10px 20px; }
+        .btn-primary { background-color: var(--secondary-color); border: none; color: #fff; }
+        .btn-primary:hover { background-color: #8bb4f5; }
+        .btn-success { background-color: var(--success-color); border: none; color: #333; }
+        .badge { font-weight: 600; padding: 0.5em 0.8em; border-radius: 8px; }
+
+        /* Estilos Tarjetas y Listas */
+        .recipe-card { position: relative; transition: all 0.3s ease; cursor: pointer; height: 100%; border: 2px solid transparent; }
+        .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: var(--secondary-color); }
+        .recipe-img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--card-border); }
+        
+        .recipe-list-item { position: relative; display: flex; flex-direction: row; cursor: pointer; transition: all 0.3s ease; overflow: hidden; margin-bottom: 1rem; border: 2px solid transparent; }
+        .recipe-list-item:hover { transform: translateX(5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: var(--secondary-color); }
+        .recipe-list-img { width: 200px; height: auto; object-fit: cover; border-right: 1px solid var(--card-border); }
+        .recipe-list-body { flex: 1; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; }
+
+        @media (max-width: 768px) {
+            .recipe-list-item { flex-direction: column; }
+            .recipe-list-img { width: 100%; height: 180px; border-right: none; border-bottom: 1px solid var(--card-border); }
+            #cartBar { flex-direction: column; text-align: center; }
+        }
+
+        /* Escala de Grises para faltantes */
+        .grayscale-item { filter: grayscale(100%); opacity: 0.7; }
+        .grayscale-item:hover { filter: grayscale(0%); opacity: 1; }
+
+        .macro-box { background-color: var(--bg-color); border-radius: 10px; padding: 10px; text-align: center; flex: 1; margin: 0 5px; }
+        .macro-val { font-weight: 800; font-size: 1.2rem; }
+
+        /* Checkbox de selección */
+        .recipe-checkbox { width: 25px; height: 25px; cursor: pointer; border: 2px solid #333; }
+
+        @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand text-dark fw-bold fs-4" href="#" style="color: var(--text-color) !important;">
+            <i class="fa-solid fa-hat-wizard" style="color: var(--primary-color);"></i> CocinaMágica
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto nav-pills mt-3 mt-lg-0" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#home" type="button"><i class="fa-solid fa-house"></i> Inicio</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pantry" type="button"><i class="fa-solid fa-box-open"></i> Despensa</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#recipes" type="button"><i class="fa-solid fa-book-open"></i> Recetas</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#menu" type="button"><i class="fa-solid fa-calendar-days"></i> Menú Semanal</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#events" type="button"><i class="fa-solid fa-star"></i> Eventos</button></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+                <div class="btn-group bg-light rounded-pill p-1 border" role="group">
+                    <input type="radio" class="btn-check view-toggle" name="viewRadio" id="viewCards" value="cards" checked>
+                    <label class="btn btn-sm rounded-pill mb-0" for="viewCards" style="border:none; cursor:pointer;"><i class="fa-solid fa-border-all"></i></label>
+                    <input type="radio" class="btn-check view-toggle" name="viewRadio" id="viewList" value="list">
+                    <label class="btn btn-sm rounded-pill mb-0" for="viewList" style="border:none; cursor:pointer;"><i class="fa-solid fa-list"></i></label>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm rounded-circle p-2 ms-2" id="themeToggle" style="width: 40px; height: 40px;"><i class="fa-solid fa-moon"></i></button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 tab-content pb-5 mb-5">
+    
+    <div class="tab-pane fade show active" id="home" role="tabpanel">
+        <div class="hero-banner">
+            <h1 class="hero-title">Tu cocina, más inteligente.</h1>
+            <p class="lead mb-4 fw-medium text-dark opacity-75">Dile a CocinaMágica qué tienes en casa y te diremos qué delicias puedes preparar hoy.</p>
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4">
+                    <div class="step-box text-dark">
+                        <i class="fa-solid fa-basket-shopping step-icon"></i>
+                        <h5 class="fw-bold">1. Llena tu Despensa</h5>
+                        <p class="small text-muted mb-0">Agrega tus ingredientes y lleva el control de tu inventario.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="step-box text-dark">
+                        <i class="fa-solid fa-wand-magic-sparkles step-icon" style="color: var(--secondary-color);"></i>
+                        <h5 class="fw-bold">2. Descubre Magia</h5>
+                        <p class="small text-muted mb-0">El sistema filtrará automáticamente las recetas que puedes hacer ahora mismo.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="step-box text-dark">
+                        <i class="fa-solid fa-cart-arrow-down step-icon" style="color: var(--success-color);"></i>
+                        <h5 class="fw-bold">3. Compras Inteligentes</h5>
+                        <p class="small text-muted mb-0">Selecciona varias recetas y generamos tu lista de supermercado al instante.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie"></i> Resumen de tu Cocina</h4>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card h-100 border-0" style="background-color: var(--warning-color); color: #333;">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fa-solid fa-cubes fs-1 opacity-50 me-3"></i>
+                        <div>
+                            <h2 class="mb-0 fw-bold" id="dashIngCount">0</h2>
+                            <span class="small text-uppercase fw-bold opacity-75">Ingredientes en Despensa</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0" style="background-color: var(--success-color); color: #333;">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fa-solid fa-utensils fs-1 opacity-50 me-3"></i>
+                        <div>
+                            <h2 class="mb-0 fw-bold" id="dashReadyCount">0</h2>
+                            <span class="small text-uppercase fw-bold opacity-75">Platos listos para cocinar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0" style="background-color: var(--danger-color); color: #333;">
+                    <div class="card-body d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small text-uppercase fw-bold opacity-75 d-block mb-1">Valor Inventario</span>
+                            <h3 class="mb-0 fw-bold" id="dashTotalValue">$0</h3>
+                        </div>
+                        <button class="btn btn-dark btn-sm rounded-pill" onclick="document.querySelector('[data-bs-target=\'#recipes\']').click();">Ver Recetas <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="pantry" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center border-0 pt-4 pb-0">
+                        <h5 class="mb-0"><i class="fa-solid fa-plus text-primary"></i> Nuevo Ingreso</h5>
+                        <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 30px; height: 30px; padding: 0;" onclick="new bootstrap.Modal(document.getElementById('newIngredientModal')).show();" title="Crear en Base de Datos"><i class="fa-solid fa-cog"></i></button>
+                    </div>
+                    <div class="card-body">
+                        <form id="addIngredientForm">
+                            <div class="mb-3"><label class="small fw-bold text-muted">¿Qué compraste?</label><select class="form-select" id="ingSelect" required></select></div>
+                            <div class="row mb-4">
+                                <div class="col-6"><label class="small fw-bold text-muted">Cantidad</label><input type="number" class="form-control" id="ingQty" step="0.1" required></div>
+                                <div class="col-6"><label class="small fw-bold text-muted">Formato</label><select class="form-select" id="ingUnit" required><option value="unidades">Unidades</option><option value="gramos">g</option><option value="kilos">kg</option><option value="ml">ml</option><option value="litros">L</option></select></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm"><i class="fa-solid fa-box-open"></i> Guardar en Despensa</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header border-0 pt-4 pb-0 d-flex justify-content-between align-items-end">
+                        <h5 class="mb-0"><i class="fa-solid fa-boxes-stacked text-success"></i> Tu Inventario Actual</h5>
+                        <span id="totalCostBadge" class="badge text-dark bg-light border px-3 py-2">Total: $0</span>
+                    </div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover align-middle border-top mt-3">
+                            <thead class="table-light"><tr><th class="border-0">Producto</th><th class="border-0">Cantidad Lógica</th><th class="border-0">Valor Aprox</th><th class="border-0 text-end">Acciones</th></tr></thead>
+                            <tbody id="pantryTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="recipes" role="tabpanel">
+        <div class="card mb-4 shadow-sm border-0 bg-light">
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3"><label class="small fw-bold text-muted mb-1">Categoría</label><select class="form-select" id="filterType"><option value="all">Todo</option><option value="entrada">Entradas</option><option value="comida">Comidas/Cenas</option><option value="once">Onces</option><option value="postre">Postres</option><option value="trago">Tragos</option></select></div>
+                    <div class="col-md-3"><label class="small fw-bold text-muted mb-1">Preferencias</label><select class="form-select" id="filterDiet"><option value="all">Todas</option><option value="vegano">Vegano</option><option value="diabetico">Diabético</option><option value="keto">Keto</option></select></div>
+                    <div class="col-md-3"><label class="small fw-bold text-muted mb-1">Objetivo Kcal</label><select class="form-select" id="filterCalories"><option value="all">Cualquiera</option><option value="low">Bajas (< 400)</option><option value="med">Medias (400-800)</option><option value="high">Altas (> 800)</option></select></div>
+                    <div class="col-md-3"><label class="small fw-bold text-muted mb-1">Porciones a Cocinar</label><select class="form-select" id="filterPersons"><option value="1">1 Persona</option><option value="2">2 Personas</option><option value="4" selected>4 Personas</option><option value="6">6 Personas</option></select></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h4 class="mb-0 text-success fw-bold"><i class="fa-solid fa-check-circle"></i> ¡Puedes cocinar esto hoy!</h4>
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRecipeModal"><i class="fa-solid fa-plus"></i> Crear Receta</button>
+        </div>
+        <div class="row mb-5" id="recipesReadyGrid"></div>
+        
+        <h4 class="mb-3 text-danger fw-bold border-bottom pb-2"><i class="fa-solid fa-cart-arrow-down"></i> Te faltan ingredientes</h4>
+        <div class="row" id="recipesMissingGrid"></div>
+    </div>
+
+    <div class="tab-pane fade" id="menu" role="tabpanel">
+        <div class="card mb-4 shadow-sm border-0" style="background: linear-gradient(to right, var(--success-color), var(--bg-color));">
+            <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white p-2 rounded-circle shadow-sm"><i class="fa-solid fa-calendar-week fs-3 text-success mx-2"></i></div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Planificador Mágico de la Semana</h5>
+                        <p class="mb-0 small text-dark opacity-75">Configura para cuántas personas quieres el almuerzo y nosotros armamos los días.</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 mt-3 mt-md-0 bg-white p-2 rounded-pill shadow-sm">
+                    <label class="mb-0 fw-bold ps-3 text-nowrap">Personas:</label>
+                    <select class="form-select form-select-sm border-0 bg-light rounded-pill" style="width: 70px;" id="menuPersons"><option value="1">1</option><option value="2">2</option><option value="4" selected>4</option><option value="6">6</option></select>
+                    <button class="btn btn-success rounded-pill ms-2" id="generateMenuBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar Menú</button>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="weeklyMenuGrid">
+            <div class="col-12 text-center p-5">
+                <i class="fa-solid fa-calendar-plus fs-1 text-muted mb-3 opacity-50"></i>
+                <h5 class="text-muted fw-bold">Aún no has generado tu menú</h5>
+                <p class="text-muted">Haz clic en "Generar Menú" para planificar tu semana.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="events" role="tabpanel">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Calendario de Celebraciones</h2>
+            <p class="text-muted">Platos tradicionales sugeridos para fechas especiales en Chile.</p>
+        </div>
+        <div class="row" id="eventsGrid"></div>
+    </div>
+</div>
+
+<div id="cartBar" class="position-fixed bottom-0 start-50 translate-middle-x bg-dark text-white p-3 rounded-top-4 shadow-lg d-none z-3 d-flex align-items-center justify-content-between gap-3" style="width: 90%; max-width: 600px;">
+    <div class="fw-bold fs-5"><i class="fa-solid fa-utensils text-warning"></i> <span id="cartCount">0</span> recetas elegidas</div>
+    <button class="btn btn-success rounded-pill fw-bold" onclick="showCartModal()"><i class="fa-solid fa-cart-shopping"></i> Lista de Compras</button>
+</div>
+
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-basket-shopping"></i> Tu Lista de Compras Mágica</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">Ingredientes faltantes para cocinar tus <span id="cartModalCount" class="fw-bold text-dark"></span> recetas seleccionadas:</p>
+                <div id="cartMissingListContainer">
+                    <ul id="cartMissingList" class="list-group list-group-flush mb-4 shadow-sm rounded border"></ul>
+                    <button class="btn btn-success w-100 rounded-pill fs-5 shadow-sm" id="btnCartWhatsapp"><i class="fa-brands fa-whatsapp fs-4 align-middle"></i> Enviar al WhatsApp</button>
+                </div>
+                <div id="cartAllGoodMsg" class="d-none text-center p-4 bg-light rounded border border-success">
+                    <i class="fa-solid fa-check-double fs-1 text-success mb-3"></i>
+                    <h5 class="fw-bold text-dark">¡No tienes que comprar nada!</h5>
+                    <p class="text-muted mb-0">Tienes todos los ingredientes en tu despensa para cocinar lo seleccionado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addRecipeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content card border-0 shadow-lg">
+            <div class="modal-header bg-primary text-dark border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-nib"></i> Añadir Nueva Receta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 p-md-5">
+                <form id="createRecipeForm">
+                    <div class="row mb-4">
+                        <div class="col-md-5"><label class="fw-bold small mb-1">Nombre del Plato</label><input type="text" class="form-control form-control-lg" id="newRecName" required></div>
+                        <div class="col-md-4"><label class="fw-bold small mb-1">Categoría</label>
+                            <select class="form-select form-select-lg" id="newRecType"><option value="entrada">Entrada</option><option value="comida">Comida/Cena</option><option value="once">Once</option><option value="postre">Postre</option><option value="trago">Trago</option></select>
+                        </div>
+                        <div class="col-md-3"><label class="fw-bold small mb-1">Rinde para...</label><input type="number" class="form-control form-control-lg" id="newRecBasePortions" value="4" min="1" required><small class="text-muted" style="font-size:0.75rem;">Personas (Base)</small></div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-12"><label class="fw-bold small mb-1">Dietas (Ctrl+Click para varias)</label>
+                            <select multiple class="form-select" id="newRecDiets"><option value="vegano">Vegano</option><option value="diabetico">Diabético</option><option value="keto">Keto</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-5"><label class="fw-bold small mb-1">Instrucciones Paso a Paso</label><textarea class="form-control" id="newRecInst" rows="3" required></textarea></div>
+                    
+                    <div class="bg-light p-4 rounded-4 border">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-carrot text-warning"></i> Ingredientes Exactos (Para <span id="lblBaseP">4</span> pers.)</h6>
+                        <div id="newRecIngredientsDiv"></div>
+                        <button type="button" class="btn btn-sm btn-outline-dark mt-2 rounded-pill px-3" id="addIngRowBtn"><i class="fa-solid fa-plus"></i> Añadir línea</button>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-lg w-100 mt-4 rounded-pill shadow-sm">Guardar Receta Mágica</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="newIngredientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content card border-0 shadow-lg">
+            <div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fa-solid fa-database text-primary"></i> Base de Datos: Ingrediente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="newIngredientForm">
+                    <div class="mb-3"><label class="small fw-bold">Nombre</label><input type="text" class="form-control" id="newIngName" required></div>
+                    <div class="row mb-3">
+                        <div class="col-6"><label class="small fw-bold">Unidad Base Interna</label><select class="form-select" id="newIngBaseUnit"><option value="g">Gramos</option><option value="ml">Mililitros</option><option value="unidades">Unidades</option></select></div>
+                        <div class="col-6"><label class="small fw-bold">Precio (CLP)</label><input type="number" class="form-control" id="newIngPrice" required><small class="text-muted" style="font-size:0.7rem;">x Kilo/Litro/Unid.</small></div>
+                    </div>
+                    <div class="p-3 bg-light rounded mt-4 border">
+                        <h6 class="small fw-bold mb-3 text-center">Información Nutricional (por 100g/ml o 1 Unid)</h6>
+                        <div class="row g-2">
+                            <div class="col-3"><label class="small text-muted">Kcal</label><input type="number" step="0.1" class="form-control form-control-sm text-center" id="newIngCal" value="0"></div>
+                            <div class="col-3"><label class="small text-muted">Prot(g)</label><input type="number" step="0.1" class="form-control form-control-sm text-center text-success" id="newIngP" value="0"></div>
+                            <div class="col-3"><label class="small text-muted">Carb(g)</label><input type="number" step="0.1" class="form-control form-control-sm text-center text-primary" id="newIngC" value="0"></div>
+                            <div class="col-3"><label class="small text-muted">Grasa(g)</label><input type="number" step="0.1" class="form-control form-control-sm text-center text-danger" id="newIngF" value="0"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-4 rounded-pill">Guardar en Sistema</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recipeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content card border-0 shadow-lg" id="printArea">
+            <div class="modal-header border-0 pb-0 position-absolute w-100 z-3" style="background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);">
+                <h3 class="modal-title fw-bold text-white px-2 py-3" id="modalRecipeTitle">Título</h3>
+                <button type="button" class="btn-close btn-close-white me-3 mt-3 no-print" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="modalImg" src="" class="w-100" style="height: 300px; object-fit: cover;">
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 no-print border-bottom pb-3 mt-2">
+                        <div id="modalDietTags"></div>
+                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-4 no-print text-center g-2 flex-wrap">
+                        <div class="macro-box shadow-sm"><div class="macro-val" id="modKcal">0</div><div class="macro-label">Kcal Totales</div></div>
+                        <div class="macro-box shadow-sm"><div class="macro-val text-success" id="modPro">0g</div><div class="macro-label">Proteína</div></div>
+                        <div class="macro-box shadow-sm"><div class="macro-val text-primary" id="modCarb">0g</div><div class="macro-label">Carbs</div></div>
+                        <div class="macro-box shadow-sm"><div class="macro-val text-danger" id="modFat">0g</div><div class="macro-label">Grasa</div></div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-5 mb-4 mb-md-0">
+                            <div class="bg-light p-3 rounded-4 h-100 border">
+                                <h6 class="fw-bold mb-3"><i class="fa-solid fa-list-check"></i> Ingredientes (<span id="modalPortionsCount"></span> pers.)</h6>
+                                <ul id="modalIngredientsList" class="mb-4 ps-3" style="font-size: 0.95rem;"></ul>
+                                <div class="p-3 bg-white rounded text-center border">
+                                    <span class="d-block small text-muted text-uppercase fw-bold mb-1">Costo Estimado</span>
+                                    <span class="fs-4 fw-bold text-dark">$<span id="modalCost">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-fire-burner"></i> Preparación</h5>
+                            <p id="modalInstructions" style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.6;"></p>
+                        </div>
+                    </div>
+
+                    <div class="alert mt-4 no-print d-none rounded-4 shadow-sm text-center" id="missingIngredientsDiv" style="background-color: var(--warning-color); color: #333; border: 2px dashed #e9c46a;">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-shopping"></i> Te falta comprar estos ingredientes:</h6>
+                        <ul id="modalMissingList" class="list-unstyled mb-3 d-flex flex-wrap justify-content-center gap-2"></ul>
+                        <button class="btn btn-success rounded-pill px-4" id="btnWhatsapp"><i class="fa-brands fa-whatsapp fs-5 align-middle"></i> Enviar Lista al WhatsApp</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ================= BASE DE DATOS ================= */
+const ingredientsDB = {
+    'tomate': { name: 'Tomate', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'unidades':150}, nutrition: {cals:18, p:0.9, c:3.9, f:0.2} },
+    'cebolla': { name: 'Cebolla', baseUnit: 'g', pricePerBase: 1000/1000, conversion: {'unidades':150}, nutrition: {cals:40, p:1.1, c:9.3, f:0.1} },
+    'ajo': { name: 'Ajo', baseUnit: 'unidades', pricePerBase: 50, conversion: {'unidades':1}, nutrition: {cals:4, p:0.2, c:1, f:0} },
+    'limon': { name: 'Limón', baseUnit: 'ml', pricePerBase: 1500/1000, conversion: {'unidades':30}, nutrition: {cals:29, p:1.1, c:9.3, f:0.3} },
+    'palta': { name: 'Palta', baseUnit: 'g', pricePerBase: 4500/1000, conversion: {'unidades':200}, nutrition: {cals:160, p:2, c:8.5, f:14.7} },
+    'papa': { name: 'Papa', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'unidades':150}, nutrition: {cals:77, p:2, c:17.5, f:0.1} },
+    'zapallo': { name: 'Zapallo', baseUnit: 'g', pricePerBase: 1500/1000, conversion: {'kilos':1000}, nutrition: {cals:26, p:1, c:6.5, f:0.1} },
+    'zanahoria': { name: 'Zanahoria', baseUnit: 'g', pricePerBase: 900/1000, conversion: {'unidades':100}, nutrition: {cals:41, p:0.9, c:9.6, f:0.2} },
+    'pimenton': { name: 'Pimentón', baseUnit: 'g', pricePerBase: 1500/1000, conversion: {'unidades':150}, nutrition: {cals:20, p:1, c:4.6, f:0.2} },
+    'cilantro': { name: 'Cilantro', baseUnit: 'g', pricePerBase: 1000/1000, conversion: {}, nutrition: {cals:23, p:2.1, c:3.7, f:0.5} },
+    'repollo': { name: 'Repollo', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'kilos':1000}, nutrition: {cals:25, p:1.3, c:5.8, f:0.1} },
+    'pollo': { name: 'Pollo (Piezas)', baseUnit: 'g', pricePerBase: 4000/1000, conversion: {'kilos':1000}, nutrition: {cals:165, p:31, c:0, f:3.6} },
+    'carne_molida': { name: 'Carne Molida', baseUnit: 'g', pricePerBase: 6500/1000, conversion: {'kilos':1000}, nutrition: {cals:250, p:26, c:0, f:15} },
+    'carne_vacuno': { name: 'Carne Vacuno (Posta)', baseUnit: 'g', pricePerBase: 8000/1000, conversion: {'kilos':1000}, nutrition: {cals:180, p:28, c:0, f:6} },
+    'pescado': { name: 'Pescado (Merluza)', baseUnit: 'g', pricePerBase: 5000/1000, conversion: {'kilos':1000}, nutrition: {cals:90, p:19, c:0, f:1.2} },
+    'huevos': { name: 'Huevos', baseUnit: 'unidades', pricePerBase: 250, conversion: {'unidades':1}, nutrition: {cals:78, p:6, c:0.6, f:5} },
+    'longaniza': { name: 'Longaniza', baseUnit: 'unidades', pricePerBase: 800, conversion: {'unidades':1}, nutrition: {cals:280, p:12, c:1, f:25} },
+    'vienesa': { name: 'Vienesa', baseUnit: 'unidades', pricePerBase: 300, conversion: {'unidades':1}, nutrition: {cals:150, p:5, c:2, f:13} },
+    'carne_cerdo': { name: 'Carne de Cerdo', baseUnit: 'g', pricePerBase: 5000/1000, conversion: {'kilos':1000}, nutrition: {cals:242, p:27, c:0, f:14} },
+    'mariscos_surtidos': { name: 'Mariscos Surtidos', baseUnit: 'g', pricePerBase: 5000/1000, conversion: {'kilos':1000}, nutrition: {cals:90, p:15, c:2, f:1} },
+    'jurel_tarro': { name: 'Jurel (Tarro)', baseUnit: 'g', pricePerBase: 3500/1000, conversion: {'kilos':1000}, nutrition: {cals:150, p:20, c:0, f:7} },
+    'leche': { name: 'Leche', baseUnit: 'ml', pricePerBase: 1100/1000, conversion: {'litros':1000}, nutrition: {cals:42, p:3.4, c:5, f:1} },
+    'queso_mantecoso': { name: 'Queso Mantecoso', baseUnit: 'g', pricePerBase: 8000/1000, conversion: {'kilos':1000}, nutrition: {cals:350, p:20, c:2, f:28} },
+    'crema_leche': { name: 'Crema de Leche', baseUnit: 'ml', pricePerBase: 4500/1000, conversion: {'litros':1000}, nutrition: {cals:345, p:2, c:3, f:36} },
+    'mantequilla': { name: 'Mantequilla', baseUnit: 'g', pricePerBase: 8000/1000, conversion: {'kilos':1000}, nutrition: {cals:717, p:0.9, c:0.1, f:81} },
+    'leche_evaporada': { name: 'Leche Evaporada', baseUnit: 'ml', pricePerBase: 3000/1000, conversion: {'litros':1000}, nutrition: {cals:134, p:7, c:10, f:7.6} },
+    'leche_condensada': { name: 'Leche Condensada', baseUnit: 'ml', pricePerBase: 4000/1000, conversion: {'litros':1000}, nutrition: {cals:321, p:8, c:54, f:8} },
+    'arroz': { name: 'Arroz', baseUnit: 'g', pricePerBase: 1300/1000, conversion: {'kilos':1000}, nutrition: {cals:130, p:2.7, c:28, f:0.3} },
+    'fideos': { name: 'Fideos', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'kilos':1000}, nutrition: {cals:158, p:5.8, c:31, f:0.9} },
+    'lentejas': { name: 'Lentejas', baseUnit: 'g', pricePerBase: 2800/1000, conversion: {'kilos':1000}, nutrition: {cals:116, p:9, c:20, f:0.4} },
+    'porotos': { name: 'Porotos', baseUnit: 'g', pricePerBase: 2500/1000, conversion: {'kilos':1000}, nutrition: {cals:347, p:21, c:63, f:1.2} },
+    'garbanzos': { name: 'Garbanzos', baseUnit: 'g', pricePerBase: 3000/1000, conversion: {'kilos':1000}, nutrition: {cals:364, p:19, c:61, f:6} },
+    'arvejas': { name: 'Arvejas', baseUnit: 'g', pricePerBase: 2000/1000, conversion: {'kilos':1000}, nutrition: {cals:81, p:5, c:14, f:0.4} },
+    'harina': { name: 'Harina', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'kilos':1000}, nutrition: {cals:364, p:10, c:76, f:1} },
+    'pan_marraqueta': { name: 'Marraqueta', baseUnit: 'unidades', pricePerBase: 250, conversion: {'unidades':1}, nutrition: {cals:270, p:8, c:55, f:1} },
+    'pan_completo': { name: 'Pan Completo', baseUnit: 'unidades', pricePerBase: 200, conversion: {'unidades':1}, nutrition: {cals:180, p:5, c:35, f:2} },
+    'pan_rallado': { name: 'Pan Rallado', baseUnit: 'g', pricePerBase: 2000/1000, conversion: {'kilos':1000}, nutrition: {cals:395, p:14, c:72, f:5} },
+    'mote': { name: 'Mote', baseUnit: 'g', pricePerBase: 1800/1000, conversion: {'kilos':1000}, nutrition: {cals:340, p:11, c:72, f:1.5} },
+    'choclo': { name: 'Pasta Choclo', baseUnit: 'g', pricePerBase: 3500/1000, conversion: {'kilos':1000}, nutrition: {cals:86, p:3.3, c:19, f:1.4} },
+    'aceite': { name: 'Aceite', baseUnit: 'ml', pricePerBase: 2200/1000, conversion: {'litros':1000}, nutrition: {cals:884, p:0, c:0, f:100} },
+    'azucar': { name: 'Azúcar', baseUnit: 'g', pricePerBase: 1200/1000, conversion: {'kilos':1000}, nutrition: {cals:387, p:0, c:100, f:0} },
+    'manjar': { name: 'Manjar', baseUnit: 'g', pricePerBase: 4000/1000, conversion: {'kilos':1000}, nutrition: {cals:315, p:7, c:55, f:7} },
+    'frutillas': { name: 'Frutillas', baseUnit: 'g', pricePerBase: 3000/1000, conversion: {'kilos':1000}, nutrition: {cals:32, p:0.7, c:7.7, f:0.3} },
+    'manzana': { name: 'Manzana', baseUnit: 'unidades', pricePerBase: 300, conversion: {'unidades':1}, nutrition: {cals:52, p:0.3, c:14, f:0.2} },
+    'huesillo': { name: 'Huesillo', baseUnit: 'unidades', pricePerBase: 150, conversion: {'unidades':1}, nutrition: {cals:80, p:1, c:20, f:0} },
+    'pisco': { name: 'Pisco', baseUnit: 'ml', pricePerBase: 7000/1000, conversion: {'litros':1000}, nutrition: {cals:231, p:0, c:0, f:0} },
+    'vino_blanco': { name: 'Vino Blanco', baseUnit: 'ml', pricePerBase: 3500/1000, conversion: {'litros':1000}, nutrition: {cals:82, p:0.1, c:2.6, f:0} },
+    'vino_tinto': { name: 'Vino Tinto', baseUnit: 'ml', pricePerBase: 4000/1000, conversion: {'litros':1000}, nutrition: {cals:85, p:0.1, c:2.6, f:0} }
+};
+
+let recipesDB = [
+    { id: 1, basePortions: 4, name: 'Charquicán Casero', type: 'comida', diets: [], instructions: 'Cocer papas, zapallo y zanahoria. Freir carne molida con cebolla picada fina. Juntar todos los ingredientes en la olla y moler grueso con un pisa papas.', ingredients: [{id:'carne_molida', qty:400, unit:'g'}, {id:'papa', qty:6, unit:'unidades'}, {id:'zapallo', qty:500, unit:'g'}, {id:'zanahoria', qty:2, unit:'unidades'}, {id:'cebolla', qty:150, unit:'g'}] },
+    { id: 2, basePortions: 4, name: 'Pollo Arvejado', type: 'comida', diets: [], instructions: 'Dorar el pollo. Hacer sofrito de cebolla y zanahoria. Juntar con pollo, agregar agua y arvejas. Cocer por 20 min. Servir con arroz graneado.', ingredients: [{id:'pollo', qty:800, unit:'g'}, {id:'arvejas', qty:250, unit:'g'}, {id:'zanahoria', qty:2, unit:'unidades'}, {id:'cebolla', qty:150, unit:'g'}, {id:'arroz', qty:400, unit:'g'}] },
+    { id: 3, basePortions: 4, name: 'Lentejas Maravilla', type: 'comida', diets: ['vegano'], instructions: 'Hervir lentejas con un trozo de zapallo y zanahoria. Al final agregar un sofrito dorado de cebolla y ajo.', ingredients: [{id:'lentejas', qty:400, unit:'g'}, {id:'zapallo', qty:200, unit:'g'}, {id:'zanahoria', qty:1, unit:'unidades'}, {id:'cebolla', qty:100, unit:'g'}, {id:'ajo', qty:2, unit:'unidades'}] },
+    { id: 4, basePortions: 4, name: 'Pescado Frito con Puré', type: 'comida', diets: [], instructions: 'Pasar pescado por batido (harina, huevo) y freír. Hacer puré cociendo papas y moliendo con leche.', ingredients: [{id:'pescado', qty:800, unit:'g'}, {id:'harina', qty:100, unit:'g'}, {id:'huevos', qty:2, unit:'unidades'}, {id:'papa', qty:8, unit:'unidades'}, {id:'leche', qty:200, unit:'ml'}, {id:'aceite', qty:200, unit:'ml'}] },
+    { id: 5, basePortions: 4, name: 'Cazuela de Vacuno', type: 'comida', diets: [], instructions: 'Cocer la carne en abundante agua. Agregar papas enteras, trozos de zapallo y arroz. Hervir hasta que todo esté tierno.', ingredients: [{id:'carne_vacuno', qty:800, unit:'g'}, {id:'papa', qty:4, unit:'unidades'}, {id:'zapallo', qty:400, unit:'g'}, {id:'arroz', qty:100, unit:'g'}, {id:'zanahoria', qty:2, unit:'unidades'}] },
+    { id: 6, basePortions: 4, name: 'Porotos con Riendas', type: 'comida', diets: ['vegano'], instructions: 'Remojar porotos y cocer con zapallo. Cuando estén casi listos, agregar fideos y sofrito en aceite.', ingredients: [{id:'porotos', qty:400, unit:'g'}, {id:'zapallo', qty:300, unit:'g'}, {id:'fideos', qty:200, unit:'g'}, {id:'cebolla', qty:150, unit:'g'}, {id:'aceite', qty:20, unit:'ml'}] },
+    { id: 7, basePortions: 4, name: 'Pastel de Choclo', type: 'comida', diets: [], instructions: 'Preparar pino de carne. Poner en fuente de greda con pollo. Cubrir con pastelera de choclo, espolvorear azúcar y hornear al máximo.', ingredients: [{id:'choclo', qty:1000, unit:'g'}, {id:'carne_molida', qty:400, unit:'g'}, {id:'cebolla', qty:300, unit:'g'}, {id:'pollo', qty:400, unit:'g'}, {id:'azucar', qty:20, unit:'g'}] },
+    { id: 8, basePortions: 1, name: 'Ensalada Chilena', type: 'entrada', diets: ['vegano', 'keto'], instructions: 'Cortar tomate y cebolla en pluma (amortiguar cebolla). Aliñar generosamente con aceite, sal y jugo de limón.', ingredients: [{id:'tomate', qty:150, unit:'g'}, {id:'cebolla', qty:50, unit:'g'}, {id:'limon', qty:10, unit:'ml'}, {id:'aceite', qty:5, unit:'ml'}] },
+    { id: 9, basePortions: 1, name: 'Completo Italiano', type: 'once', diets: [], instructions: 'Cocer vienesa en agua hirviendo. Calentar el pan. Armar con vienesa, tomate picado finamente y palta molida fresca.', ingredients: [{id:'pan_completo', qty:1, unit:'unidades'}, {id:'vienesa', qty:1, unit:'unidades'}, {id:'tomate', qty:80, unit:'g'}, {id:'palta', qty:80, unit:'g'}] },
+    { id: 10, basePortions: 1, name: 'Marraqueta con Palta', type: 'once', diets: ['vegano'], instructions: 'Moler palta con un tenedor, agregar sal y untar en la marraqueta crujiente.', ingredients: [{id:'pan_marraqueta', qty:1, unit:'unidades'}, {id:'palta', qty:100, unit:'g'}] },
+    { id: 11, basePortions: 4, name: 'Sopaipillas Clásicas', type: 'once', diets: ['vegano'], instructions: 'Mezclar harina con puré de zapallo cocido y manteca/aceite caliente. Amasar, cortar y freír en aceite profundo.', ingredients: [{id:'harina', qty:500, unit:'g'}, {id:'zapallo', qty:300, unit:'g'}, {id:'aceite', qty:250, unit:'ml'}] },
+    { id: 12, basePortions: 4, name: 'Mote con Huesillo', type: 'postre', diets: ['vegano'], instructions: 'Cocer huesillos hidratados con azúcar caramelizada. Enfriar bien y servir en vaso alto con mote cocido.', ingredients: [{id:'mote', qty:200, unit:'g'}, {id:'huesillo', qty:4, unit:'unidades'}, {id:'azucar', qty:100, unit:'g'}] },
+    { id: 13, basePortions: 4, name: 'Pisco Sour Chileno', type: 'trago', diets: ['vegano'], instructions: 'Licuar pisco, jugo de limón recién exprimido, azúcar y abundante hielo hasta lograr espuma.', ingredients: [{id:'pisco', qty:360, unit:'ml'}, {id:'limon', qty:120, unit:'ml'}, {id:'azucar', qty:120, unit:'g'}] },
+    { id: 14, basePortions: 4, name: 'Paila Marina', type: 'comida', diets: ['keto'], instructions: 'Sofreir cebolla y ajo, agregar mariscos surtidos, cilantro fresco y apagar con vino blanco. Servir en paila de greda muy caliente.', ingredients: [{id:'mariscos_surtidos', qty:800, unit:'g'}, {id:'cebolla', qty:200, unit:'g'}, {id:'ajo', qty:2, unit:'unidades'}, {id:'vino_blanco', qty:150, unit:'ml'}, {id:'cilantro', qty:20, unit:'g'}] },
+    { id: 15, basePortions: 4, name: 'Cerdo al Horno con Puré', type: 'comida', diets: [], instructions: 'Aliñar la pulpa de cerdo y hornear lentamente. Acompañar con puré de papas molidas con leche y mantequilla.', ingredients: [{id:'carne_cerdo', qty:800, unit:'g'}, {id:'papa', qty:6, unit:'unidades'}, {id:'leche', qty:150, unit:'ml'}, {id:'mantequilla', qty:30, unit:'g'}, {id:'ajo', qty:3, unit:'unidades'}] },
+    { id: 16, basePortions: 4, name: 'Empanadas Fritas de Queso', type: 'once', diets: [], instructions: 'Preparar la masa con harina, agua y un toque de aceite. Rellenar abundantemente con queso mantecoso y freír en aceite bien caliente.', ingredients: [{id:'harina', qty:400, unit:'g'}, {id:'queso_mantecoso', qty:300, unit:'g'}, {id:'aceite', qty:300, unit:'ml'}] },
+    { id: 17, basePortions: 4, name: 'Garbanzos con Longaniza', type: 'comida', diets: [], instructions: 'Cocer garbanzos. Preparar un buen sofrito con cebolla, pimentón y rodajas de longaniza. Mezclar todo.', ingredients: [{id:'garbanzos', qty:400, unit:'g'}, {id:'longaniza', qty:2, unit:'unidades'}, {id:'cebolla', qty:150, unit:'g'}, {id:'pimenton', qty:50, unit:'g'}, {id:'zapallo', qty:150, unit:'g'}] },
+    { id: 18, basePortions: 4, name: 'Croquetas de Jurel', type: 'comida', diets: [], instructions: 'Desmenuzar el jurel de tarro, mezclar con cebolla picada, huevos y pan rallado. Formar las croquetas y freír dorando por ambos lados.', ingredients: [{id:'jurel_tarro', qty:400, unit:'g'}, {id:'pan_rallado', qty:100, unit:'g'}, {id:'huevos', qty:2, unit:'unidades'}, {id:'cebolla', qty:100, unit:'g'}, {id:'aceite', qty:150, unit:'ml'}] },
+    { id: 19, basePortions: 4, name: 'Postre de Manzanas Asadas', type: 'postre', diets: ['vegano'], instructions: 'Hacer un corte en el centro de las manzanas, rellenar con azúcar (o endulzante) y hornear hasta que estén muy tiernas y doradas.', ingredients: [{id:'manzana', qty:4, unit:'unidades'}, {id:'azucar', qty:40, unit:'g'}] },
+    { id: 20, basePortions: 4, name: 'Ensalada de Repollo con Limón', type: 'entrada', diets: ['vegano', 'keto', 'diabetico'], instructions: 'Picar el repollo muy fino. Amortiguar con agua caliente si se desea, estilar y aliñar con abundante limón y aceite.', ingredients: [{id:'repollo', qty:400, unit:'g'}, {id:'limon', qty:30, unit:'ml'}, {id:'aceite', qty:15, unit:'ml'}] },
+    { id: 21, basePortions: 4, name: 'Suspiro Limeño Rápido', type: 'postre', diets: [], instructions: 'Reducir la leche condensada y evaporada a fuego bajo hasta espesar. Servir en copas y cubrir con merengue.', ingredients: [{id:'leche_evaporada', qty:400, unit:'ml'}, {id:'leche_condensada', qty:400, unit:'ml'}, {id:'huevos', qty:3, unit:'unidades'}, {id:'azucar', qty:100, unit:'g'}] },
+    { id: 22, basePortions: 4, name: 'Frutillas con Crema', type: 'postre', diets: [], instructions: 'Lavar y picar las frutillas. Batir la crema de leche con el azúcar hasta punto chantilly y mezclar suavemente.', ingredients: [{id:'frutillas', qty:500, unit:'g'}, {id:'crema_leche', qty:200, unit:'ml'}, {id:'azucar', qty:50, unit:'g'}] },
+    { id: 23, basePortions: 4, name: 'Pollo al Vino Blanco', type: 'comida', diets: ['keto'], instructions: 'Sellar presas de pollo, hacer sofrito de cebolla, apagar con vino blanco y cocinar a fuego lento.', ingredients: [{id:'pollo', qty:800, unit:'g'}, {id:'vino_blanco', qty:250, unit:'ml'}, {id:'cebolla', qty:200, unit:'g'}, {id:'aceite', qty:30, unit:'ml'}] }
+];
+
+const eventsDB = [
+    { name: 'Año Nuevo', date: '31 Dic', recipes: [5, 13, 8, 14] },
+    { name: 'Semana Santa', date: 'Abril', recipes: [4, 8, 14, 18] },
+    { name: 'Día de la Madre', date: 'Mayo', recipes: [2, 12, 13, 23, 22] },
+    { name: 'Día del Completo', date: '24 Mayo', recipes: [9] },
+    { name: 'We Tripantu', date: '21 al 24 Junio', recipes: [1, 11] },
+    { name: 'Invierno Chileno', date: 'Julio', recipes: [3, 5, 6, 11, 17] },
+    { name: 'Fiestas Patrias', date: '18 Sept', recipes: [7, 11, 12, 13, 16] },
+    { name: 'Navidad', date: '25 Dic', recipes: [15, 21, 22] }
+];
+
+let pantry = {}; 
+let currentViewMode = 'cards'; 
+let currentWeeklyMenu = []; 
+let cart = []; // Múltiples recetas para la lista de compras
+
+function initPantry() {
+    addIngredientToPantry('tomate', 5, 'unidades'); addIngredientToPantry('cebolla', 3, 'unidades'); 
+    addIngredientToPantry('carne_molida', 1, 'kilos'); addIngredientToPantry('papa', 2, 'kilos');
+    addIngredientToPantry('zapallo', 1, 'kilos'); addIngredientToPantry('zanahoria', 5, 'unidades');
+    addIngredientToPantry('pollo', 1, 'kilos'); addIngredientToPantry('arroz', 1, 'kilos');
+    addIngredientToPantry('aceite', 1, 'litros'); addIngredientToPantry('harina', 1, 'kilos');
+}
+
+/* ================= LÓGICA Y CÁLCULOS ================= */
+function convertToBaseUnit(ingId, qty, inputUnit) {
+    const ing = ingredientsDB[ingId]; if(!ing) return qty;
+    if(inputUnit === ing.baseUnit) return qty;
+    if(inputUnit === 'kilos' && ing.baseUnit === 'g') return qty * 1000;
+    if(inputUnit === 'litros' && ing.baseUnit === 'ml') return qty * 1000;
+    if(ing.conversion && ing.conversion[inputUnit]) return qty * ing.conversion[inputUnit];
+    return qty;
+}
+
+function addIngredientToPantry(ingId, qty, unit) {
+    pantry[ingId] = (pantry[ingId] || 0) + convertToBaseUnit(ingId, parseFloat(qty), unit);
+}
+
+function getMultiplier(recipe, reqPortions) { return reqPortions / (recipe.basePortions || 1); }
+
+function canCookRecipe(recipe, reqPortions = 1) {
+    let missing = []; const mult = getMultiplier(recipe, reqPortions);
+    recipe.ingredients.forEach(req => {
+        const reqBase = convertToBaseUnit(req.id, req.qty * mult, req.unit);
+        const have = pantry[req.id] || 0;
+        if(have < reqBase) missing.push({ id: req.id, faltan: reqBase - have, unit: ingredientsDB[req.id].baseUnit });
+    });
+    return missing;
+}
+
+function getRecipeCost(recipe, reqPortions = 1) {
+    const mult = getMultiplier(recipe, reqPortions);
+    return recipe.ingredients.reduce((acc, req) => acc + (convertToBaseUnit(req.id, req.qty * mult, req.unit) * ingredientsDB[req.id].pricePerBase), 0);
+}
+
+function getRecipeNutrition(recipe, reqPortions = 1) {
+    let total = { cals: 0, p: 0, c: 0, f: 0 }; const mult = getMultiplier(recipe, reqPortions);
+    recipe.ingredients.forEach(req => {
+        const ing = ingredientsDB[req.id]; if(!ing || !ing.nutrition) return;
+        const reqBase = convertToBaseUnit(req.id, req.qty * mult, req.unit);
+        let m = (ing.baseUnit === 'g' || ing.baseUnit === 'ml') ? (reqBase / 100) : reqBase;
+        total.cals += ing.nutrition.cals * m; total.p += ing.nutrition.p * m;
+        total.c += ing.nutrition.c * m; total.f += ing.nutrition.f * m;
+    });
+    return { cals: Math.round(total.cals), p: Math.round(total.p), c: Math.round(total.c), f: Math.round(total.f) };
+}
+
+function getCategoryImg(type) {
+    const images = {
+        'entrada': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
+        'comida': 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=600&q=80',
+        'once': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
+        'postre': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80',
+        'trago': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80'
+    };
+    return images[type] || 'https://images.unsplash.com/photo-1495195134817-a165d42e27e8?auto=format&fit=crop&w=600&q=80'; 
+}
+
+/* ================= RENDERIZADO UI ================= */
+function initSelects() {
+    let html = ''; Object.keys(ingredientsDB).sort((a,b)=>ingredientsDB[a].name.localeCompare(ingredientsDB[b].name)).forEach(k=>html+=`<option value="${k}">${ingredientsDB[k].name}</option>`);
+    document.getElementById('ingSelect').innerHTML = html;
+    document.querySelectorAll('.newRecIngSel').forEach(s => { const val = s.value; s.innerHTML = html; if(ingredientsDB[val]) s.value = val; });
+}
+
+function updateUI() { 
+    renderPantry(); renderRecipes(); renderEvents(); 
+    if(currentWeeklyMenu.length > 0) renderWeeklyMenu(); 
+    
+    document.getElementById('dashIngCount').innerText = Object.keys(pantry).length;
+    let totalC = 0; let readyC = 0;
+    for (const [id, qty] of Object.entries(pantry)) totalC += qty * ingredientsDB[id].pricePerBase;
+    document.getElementById('dashTotalValue').innerText = '$' + Math.round(totalC).toLocaleString('es-CL');
+    recipesDB.forEach(r => { if(canCookRecipe(r, r.basePortions).length === 0) readyC++; });
+    document.getElementById('dashReadyCount').innerText = readyC;
+}
+
+function formatPantryQuantity(ing, qty) {
+    if ((ing.baseUnit === 'g' || ing.baseUnit === 'ml') && ing.conversion && ing.conversion['unidades']) {
+        let unids = (qty / ing.conversion['unidades']).toFixed(1);
+        return `${unids} unids. <small class="text-muted">(${qty.toFixed(0)}${ing.baseUnit})</small>`;
+    }
+    if (ing.baseUnit === 'g' && qty >= 1000) return `${(qty/1000).toFixed(2)} kg`;
+    if (ing.baseUnit === 'ml' && qty >= 1000) return `${(qty/1000).toFixed(2)} L`;
+    return `${qty.toFixed(1)} ${ing.baseUnit}`;
+}
+
+function formatMissingQuantity(ing, faltan) {
+    if ((ing.baseUnit === 'g' || ing.baseUnit === 'ml') && ing.conversion && ing.conversion['unidades']) {
+        let unids = (faltan / ing.conversion['unidades']).toFixed(1);
+        return `${unids} unids (${faltan.toFixed(0)}${ing.baseUnit})`;
+    }
+    if (ing.baseUnit === 'g' && faltan >= 1000) return `${(faltan/1000).toFixed(2)} kg`;
+    if (ing.baseUnit === 'ml' && faltan >= 1000) return `${(faltan/1000).toFixed(2)} L`;
+    return `${faltan.toFixed(1)} ${ing.baseUnit}`;
+}
+
+function renderPantry() {
+    const tbody = document.getElementById('pantryTableBody'); tbody.innerHTML = ''; let total = 0;
+    for (const [id, qty] of Object.entries(pantry)) {
+        const ing = ingredientsDB[id]; const cost = qty * ing.pricePerBase; total += cost;
+        tbody.innerHTML += `<tr>
+            <td class="fw-bold">${ing.name}</td>
+            <td><span class="badge bg-secondary border fs-6">${formatPantryQuantity(ing, qty)}</span></td>
+            <td>$${Math.round(cost)}</td>
+            <td class="text-end text-nowrap">
+                <button class="btn btn-sm btn-outline-primary py-1 px-2 rounded-circle me-1" onclick="editPantryItem('${id}')" title="Editar Cantidad"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-sm btn-outline-danger py-1 px-2 rounded-circle" onclick="deleteFromPantry('${id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }
+    document.getElementById('totalCostBadge').innerText = `Total: $${Math.round(total).toLocaleString('es-CL')}`;
+}
+
+function editPantryItem(id) {
+    const ing = ingredientsDB[id];
+    let factor = 1;
+    let unitLabel = ing.baseUnit;
+
+    if (ing.conversion && ing.conversion['unidades']) {
+        factor = ing.conversion['unidades'];
+        unitLabel = 'unidades';
+    } else if (ing.baseUnit === 'g' && pantry[id] >= 1000) {
+        factor = 1000;
+        unitLabel = 'kilos';
+    } else if (ing.baseUnit === 'ml' && pantry[id] >= 1000) {
+        factor = 1000;
+        unitLabel = 'litros';
+    }
+
+    const currentQty = +(pantry[id] / factor).toFixed(2);
+    const newVal = prompt(`Modificar cantidad de ${ing.name} (en ${unitLabel}):`, currentQty);
+    
+    if (newVal !== null && newVal.trim() !== "" && !isNaN(newVal) && parseFloat(newVal) >= 0) {
+        pantry[id] = parseFloat(newVal) * factor;
+        updateUI();
+    } else if (newVal !== null) {
+        alert("Por favor, ingresa un número válido.");
+    }
+}
+
+function deleteFromPantry(id) { delete pantry[id]; updateUI(); }
+document.getElementById('addIngredientForm').addEventListener('submit', function(e) { e.preventDefault(); addIngredientToPantry(document.getElementById('ingSelect').value, document.getElementById('ingQty').value, document.getElementById('ingUnit').value); updateUI(); this.reset(); });
+
+function renderRecipes() {
+    const gR = document.getElementById('recipesReadyGrid'); const gM = document.getElementById('recipesMissingGrid');
+    gR.innerHTML = ''; gM.innerHTML = '';
+    const filters = { t: document.getElementById('filterType').value, d: document.getElementById('filterDiet').value, c: document.getElementById('filterCalories').value, p: parseInt(document.getElementById('filterPersons').value)||1 };
+
+    recipesDB.filter(r => {
+        const nut = getRecipeNutrition(r, filters.p);
+        if(filters.t !== 'all' && r.type !== filters.t) return false;
+        if(filters.d !== 'all' && !r.diets.includes(filters.d)) return false;
+        if(filters.c === 'low' && nut.cals >= 400) return false;
+        if(filters.c === 'med' && (nut.cals < 400 || nut.cals > 800)) return false;
+        if(filters.c === 'high' && nut.cals <= 800) return false;
+        return true;
+    }).forEach(r => {
+        const missing = canCookRecipe(r, filters.p); const cost = getRecipeCost(r, filters.p); const nut = getRecipeNutrition(r, filters.p);
+        const badges = r.diets.map(d => `<span class="badge bg-success me-1">${d.toUpperCase()}</span>`).join('');
+        const imgUrl = getCategoryImg(r.type);
+        const isMissing = missing.length > 0;
+        const statusBadge = isMissing ? `<span class="badge w-100 py-2 text-dark" style="background-color: var(--warning-color)"><i class="fa-solid fa-triangle-exclamation"></i> Faltan ${missing.length} items</span>` : `<span class="badge bg-success w-100 py-2"><i class="fa-solid fa-check-double"></i> Tienes Todo</span>`;
+        const grayClass = isMissing ? 'grayscale-item' : '';
+        const inCart = cart.some(c => c.recipeId === r.id);
+
+        let html = '';
+        if (currentViewMode === 'cards') {
+            html = `
+            <div class="col-md-3 mb-4">
+                <div class="card recipe-card ${!isMissing?'border-success':''} ${grayClass}" onclick='openModal(${JSON.stringify(r)}, ${filters.p}, ${JSON.stringify(missing)})'>
+                    <div class="position-absolute top-0 end-0 p-2 z-1">
+                        <input class="form-check-input recipe-checkbox bg-white shadow-sm" type="checkbox" data-recipe-id="${r.id}" onclick="event.stopPropagation(); toggleCart(${r.id}, ${filters.p}, this.checked)" ${inCart ? 'checked' : ''} title="Añadir a lista de compras">
+                    </div>
+                    <img src="${imgUrl}" class="recipe-img">
+                    <div class="card-body pb-2">
+                        <h6 class="fw-bold text-truncate mb-2">${r.name}</h6>
+                        <div class="mb-3">${badges} <span class="badge bg-light text-dark border">${r.type}</span></div>
+                        <div class="small fw-bold text-muted d-flex justify-content-between border-top pt-2">
+                            <span><i class="fa-solid fa-fire text-danger"></i> ${nut.cals} kcal</span>
+                            <span><i class="fa-solid fa-coins text-warning"></i> $${Math.round(cost)}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3">${statusBadge}</div>
+                </div>
+            </div>`;
+        } else {
+            html = `
+            <div class="col-12">
+                <div class="card recipe-list-item ${!isMissing?'border-success':''} ${grayClass}" onclick='openModal(${JSON.stringify(r)}, ${filters.p}, ${JSON.stringify(missing)})'>
+                    <div class="position-absolute top-0 end-0 p-3 z-1">
+                        <input class="form-check-input recipe-checkbox bg-white shadow-sm" type="checkbox" data-recipe-id="${r.id}" onclick="event.stopPropagation(); toggleCart(${r.id}, ${filters.p}, this.checked)" ${inCart ? 'checked' : ''} title="Añadir a lista de compras">
+                    </div>
+                    <img src="${imgUrl}" class="recipe-list-img">
+                    <div class="recipe-list-body">
+                        <div class="d-flex justify-content-between align-items-start pe-5">
+                            <h5 class="fw-bold mb-1">${r.name}</h5>
+                            <div style="width: 160px;">${statusBadge}</div>
+                        </div>
+                        <div class="mb-2">${badges} <span class="badge bg-light text-dark ms-2 border">${r.type.toUpperCase()}</span></div>
+                        <p class="small text-muted mb-2 text-truncate" style="max-width: 80%;">${r.instructions}</p>
+                        <div class="d-flex gap-4 small mt-auto text-muted fw-bold">
+                            <span><i class="fa-solid fa-coins text-warning"></i> $${Math.round(cost)} CLP</span>
+                            <span class="text-dark"><i class="fa-solid fa-fire text-danger"></i> ${nut.cals} kcal</span>
+                            <span class="text-success">P: ${nut.p}g</span>
+                            <span class="text-primary">C: ${nut.c}g</span>
+                            <span class="text-danger">G: ${nut.f}g</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        
+        if(!isMissing) gR.innerHTML += html; else gM.innerHTML += html;
+    });
+
+    if(!gR.innerHTML) gR.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-4 border"><i class="fa-solid fa-ghost fs-1 text-muted mb-3"></i><h6 class="text-muted">No hay platos listos para cocinar con estos filtros.</h6></div>`;
+    if(!gM.innerHTML) gM.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-4 border"><i class="fa-solid fa-box-open fs-1 text-muted mb-3"></i><h6 class="text-muted">No hay platos incompletos.</h6></div>`;
+}
+
+['filterType', 'filterDiet', 'filterCalories', 'filterPersons'].forEach(id => document.getElementById(id).addEventListener('change', renderRecipes));
+
+function renderEvents() {
+    const grid = document.getElementById('eventsGrid'); grid.innerHTML = '';
+    eventsDB.forEach(ev => {
+        let rHtml = '';
+        ev.recipes.forEach(rid => {
+            const r = recipesDB.find(x => x.id === rid);
+            if(r) {
+                const missing = canCookRecipe(r, 4);
+                const status = missing.length===0 ? '<span class="text-success small fw-bold"><i class="fa-solid fa-check"></i></span>' : '<span class="text-danger small fw-bold"><i class="fa-solid fa-xmark"></i></span>';
+                rHtml += `<li class="mb-2 d-flex justify-content-between align-items-center"><a href="#" class="text-decoration-none fw-medium" style="color: var(--text-color);" onclick='openModal(${JSON.stringify(r)}, 4, ${JSON.stringify(missing)})'>${r.name}</a> ${status}</li>`;
+            }
+        });
+        
+        if (currentViewMode === 'cards') {
+            grid.innerHTML += `<div class="col-md-4 mb-4"><div class="card shadow-sm h-100 border-0"><div class="card-header border-0 py-3 text-center" style="background-color: var(--warning-color);"><h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-calendar-star text-danger"></i> ${ev.name}</h5><small class="fw-bold text-dark opacity-75">${ev.date}</small></div><div class="card-body bg-light"><ul class="list-unstyled mb-0">${rHtml}</ul></div></div></div>`;
+        } else {
+            grid.innerHTML += `<div class="col-12 mb-3"><div class="card shadow-sm border-0 d-flex flex-md-row"><div class="d-flex flex-column justify-content-center align-items-center p-4 text-center" style="background-color: var(--warning-color); min-width:250px;"><h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-calendar-star text-danger"></i> ${ev.name}</h5><small class="fw-bold text-dark opacity-75">${ev.date}</small></div><div class="card-body bg-light"><ul class="list-unstyled mb-0 d-flex flex-column justify-content-center h-100">${rHtml}</ul></div></div></div>`;
+        }
+    });
+}
+
+document.getElementById('generateMenuBtn').addEventListener('click', () => {
+    const p = parseInt(document.getElementById('menuPersons').value) || 1;
+    const meals = recipesDB.filter(r => r.type === 'comida');
+
+    if (meals.length === 0) {
+        document.getElementById('weeklyMenuGrid').innerHTML = `<div class="col-12"><div class="alert alert-danger text-center"><i class="fa-solid fa-triangle-exclamation"></i> No hay recetas de categoría "Comida/Cena".</div></div>`;
+        return;
+    }
+
+    currentWeeklyMenu = [];
+    ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].forEach(day => {
+        currentWeeklyMenu.push({ day: day, recipe: meals[Math.floor(Math.random() * meals.length)] });
+    });
+    renderWeeklyMenu();
+});
+
+function renderWeeklyMenu() {
+    const p = parseInt(document.getElementById('menuPersons').value) || 1;
+    const grid = document.getElementById('weeklyMenuGrid'); 
+    grid.innerHTML = '';
+
+    if(currentWeeklyMenu.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center p-5"><i class="fa-solid fa-calendar-plus fs-1 text-muted mb-3 opacity-50"></i><h5 class="text-muted fw-bold">Aún no has generado tu menú</h5></div>`;
+        return;
+    }
+
+    currentWeeklyMenu.forEach(item => {
+        const r = item.recipe;
+        const missing = canCookRecipe(r, p);
+        const img = getCategoryImg(r.type);
+        const isMissing = missing.length > 0;
+        const grayClass = isMissing ? 'grayscale-item' : '';
+        const borderClass = isMissing ? 'border-start border-warning border-5' : 'border-start border-success border-5';
+        const inCart = cart.some(c => c.recipeId === r.id);
+        
+        if (currentViewMode === 'cards') {
+            grid.innerHTML += `
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow-sm h-100 border-0 ${borderClass} ${grayClass}">
+                        <div class="position-absolute top-0 end-0 p-2 z-1">
+                            <input class="form-check-input recipe-checkbox bg-white shadow-sm" type="checkbox" data-recipe-id="${r.id}" onclick="event.stopPropagation(); toggleCart(${r.id}, ${p}, this.checked)" ${inCart ? 'checked' : ''} title="Añadir a lista de compras">
+                        </div>
+                        <img src="${img}" class="card-img-top" style="height:120px; object-fit:cover;">
+                        <div class="card-body p-3 d-flex flex-column">
+                            <span class="badge bg-dark mb-2 align-self-start">${item.day}</span>
+                            <h6 class="fw-bold mb-2">${r.name}</h6>
+                            ${isMissing ? `<small class="text-danger fw-bold mb-3"><i class="fa-solid fa-xmark"></i> Compras Pendientes</small>` : `<small class="text-success fw-bold mb-3"><i class="fa-solid fa-check"></i> Despensa OK</small>`}
+                            <button class="btn btn-sm btn-outline-dark mt-auto rounded-pill w-100" onclick='openModal(${JSON.stringify(r)}, ${p}, ${JSON.stringify(missing)})'>Ver Preparación</button>
+                        </div>
+                    </div>
+                </div>`;
+        } else {
+            grid.innerHTML += `
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm border-0 ${borderClass} recipe-list-item ${grayClass}" onclick='openModal(${JSON.stringify(r)}, ${p}, ${JSON.stringify(missing)})'>
+                        <div class="position-absolute top-0 end-0 p-3 z-1">
+                            <input class="form-check-input recipe-checkbox bg-white shadow-sm" type="checkbox" data-recipe-id="${r.id}" onclick="event.stopPropagation(); toggleCart(${r.id}, ${p}, this.checked)" ${inCart ? 'checked' : ''} title="Añadir a lista de compras">
+                        </div>
+                        <div class="d-flex w-100 flex-column flex-md-row">
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-white p-3" style="min-width: 140px;">
+                                <h5 class="mb-0 fw-bold">${item.day}</h5>
+                            </div>
+                            <img src="${img}" style="width: 150px; height: 100px; object-fit: cover;">
+                            <div class="card-body d-flex flex-row justify-content-between align-items-center py-2 pe-5">
+                                <div>
+                                    <h5 class="fw-bold mb-1">${r.name}</h5>
+                                    ${isMissing ? `<small class="text-danger fw-bold"><i class="fa-solid fa-xmark"></i> Faltan cosas</small>` : `<small class="text-success fw-bold"><i class="fa-solid fa-check"></i> Listo</small>`}
+                                </div>
+                                <button class="btn btn-sm btn-outline-dark rounded-pill px-4">Detalle</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+    });
+}
+
+document.querySelectorAll('.view-toggle').forEach(radio => {
+    radio.addEventListener('change', (e) => { 
+        currentViewMode = e.target.value; 
+        updateUI(); 
+    });
+});
+
+/* ================= LÓGICA ROBUSTA DE CARRITO ================= */
+function toggleCart(recipeId, portions, isChecked) {
+    // Limpiamos siempre la receta si ya estaba para evitar duplicados
+    cart = cart.filter(c => c.recipeId !== recipeId);
+    
+    if (isChecked) {
+        cart.push({ recipeId, portions });
+    }
+    
+    // Sincronizar visualmente TODOS los checkboxes que correspondan a esta receta (e.g. en Menú Semanal y Recetas a la vez)
+    document.querySelectorAll(`.recipe-checkbox[data-recipe-id="${recipeId}"]`).forEach(cb => {
+        cb.checked = isChecked;
+    });
+
+    updateCartUI();
+}
+
+function updateCartUI() {
+    const bar = document.getElementById('cartBar');
+    if (cart.length > 0) {
+        bar.classList.remove('d-none');
+        document.getElementById('cartCount').innerText = cart.length;
+    } else {
+        bar.classList.add('d-none');
+    }
+}
+
+let cartMissingForWapp = [];
+function showCartModal() {
+    let required = {}; 
+    
+    // Sumamos absolutamente todos los requerimientos de cada receta en el carrito
+    cart.forEach(item => {
+        const r = recipesDB.find(x => x.id === item.recipeId);
+        const mult = getMultiplier(r, item.portions);
+        r.ingredients.forEach(req => {
+            const reqBase = convertToBaseUnit(req.id, req.qty * mult, req.unit);
+            required[req.id] = (required[req.id] || 0) + reqBase;
+        });
+    });
+
+    let missing = [];
+    for (const [ingId, reqQty] of Object.entries(required)) {
+        const have = pantry[ingId] || 0;
+        if (have < reqQty) {
+            const faltan = reqQty - have;
+            const ing = ingredientsDB[ingId];
+            missing.push({ id: ingId, name: ing.name, faltanStr: formatMissingQuantity(ing, faltan) });
+        }
+    }
+
+    document.getElementById('cartModalCount').innerText = cart.length;
+    const listHtml = document.getElementById('cartMissingList');
+    const msgGood = document.getElementById('cartAllGoodMsg');
+    const container = document.getElementById('cartMissingListContainer');
+
+    listHtml.innerHTML = '';
+    cartMissingForWapp = missing;
+
+    if (missing.length === 0) {
+        container.classList.add('d-none');
+        msgGood.classList.remove('d-none');
+    } else {
+        container.classList.remove('d-none');
+        msgGood.classList.add('d-none');
+        missing.forEach(m => {
+            listHtml.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-chevron-right text-success me-2"></i> ${m.name}</span>
+                <span class="badge bg-danger rounded-pill fs-6">${m.faltanStr}</span>
+            </li>`;
+        });
+    }
+
+    new bootstrap.Modal(document.getElementById('cartModal')).show();
+}
+
+document.getElementById('btnCartWhatsapp').addEventListener('click', () => {
+    let txt = `🛒 *Mi Lista de Compras Inteligente*\n_Para cocinar ${cart.length} recetas_\n\n`; 
+    cartMissingForWapp.forEach(m => txt += `👉 ${m.name}: *${m.faltanStr}*\n`);
+    window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+});
+
+/* ================= MODAL SIMPLE DE RECETA ================= */
+let wappMissing = []; let wappRec = "";
+function openModal(r, p, missing) {
+    wappMissing = missing; wappRec = r.name; const nut = getRecipeNutrition(r, p);
+    document.getElementById('modalRecipeTitle').innerText = r.name;
+    document.getElementById('modalImg').src = getCategoryImg(r.type);
+    document.getElementById('modalPortionsCount').innerText = p;
+    document.getElementById('modalCost').innerText = Math.round(getRecipeCost(r, p)).toLocaleString('es-CL');
+    document.getElementById('modalInstructions').innerText = r.instructions;
+    document.getElementById('modalDietTags').innerHTML = r.diets.map(d => `<span class="badge bg-success me-1 px-3 py-2 rounded-pill">${d.toUpperCase()}</span>`).join('');
+    
+    document.getElementById('modKcal').innerText = nut.cals; document.getElementById('modPro').innerText = nut.p + 'g'; document.getElementById('modCarb').innerText = nut.c + 'g'; document.getElementById('modFat').innerText = nut.f + 'g';
+    const ul = document.getElementById('modalIngredientsList'); ul.innerHTML = '';
+    
+    const mult = getMultiplier(r, p);
+    r.ingredients.forEach(req => ul.innerHTML += `<li class="mb-1"><span class="badge bg-secondary me-2" style="width:60px;">${(req.qty*mult).toFixed(1)} ${req.unit}</span> ${ingredientsDB[req.id].name}</li>`);
+    
+    const mDiv = document.getElementById('missingIngredientsDiv');
+    if(missing.length > 0) { 
+        mDiv.classList.remove('d-none'); const mUl = document.getElementById('modalMissingList'); mUl.innerHTML = ''; 
+        missing.forEach(m => mUl.innerHTML += `<li class="badge bg-white text-dark border px-3 py-2"><span class="text-danger fw-bold">${formatMissingQuantity(ingredientsDB[m.id], m.faltan)}</span> de ${ingredientsDB[m.id].name}</li>`); 
+    } else mDiv.classList.add('d-none');
+    
+    new bootstrap.Modal(document.getElementById('recipeModal')).show();
+}
+
+/* ================= CREADOR DE RECETAS E INGREDIENTES ================= */
+let rowC = 0;
+function addIngRow() {
+    const div = document.createElement('div'); div.className = 'row mb-2 align-items-end g-2'; div.id = `newRI_${rowC}`;
+    let opts = ''; Object.keys(ingredientsDB).sort((a,b)=>ingredientsDB[a].name.localeCompare(ingredientsDB[b].name)).forEach(k=>opts+=`<option value="${k}">${ingredientsDB[k].name}</option>`);
+    div.innerHTML = `<div class="col-md-5"><select class="form-select newRecIngSel" required>${opts}</select></div><div class="col-md-3"><input type="number" step="0.1" class="form-control newRecIngQty" placeholder="Cant." required></div><div class="col-md-3"><select class="form-select newRecIngUnit" required><option value="unidades">Unids</option><option value="gramos">g</option><option value="ml">ml</option></select></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100" onclick="document.getElementById('${div.id}').remove()"><i class="fa-solid fa-xmark"></i></button></div>`;
+    document.getElementById('newRecIngredientsDiv').appendChild(div); rowC++;
+}
+document.getElementById('addIngRowBtn').addEventListener('click', addIngRow);
+document.getElementById('newRecBasePortions').addEventListener('input', function(e) { document.getElementById('lblBaseP').innerText = e.target.value || 1; });
+
+document.getElementById('createRecipeForm').addEventListener('submit', function(e) {
+    e.preventDefault(); let ings = [];
+    document.querySelectorAll('#newRecIngredientsDiv .row').forEach(row => { ings.push({ id: row.querySelector('.newRecIngSel').value, qty: parseFloat(row.querySelector('.newRecIngQty').value), unit: row.querySelector('.newRecIngUnit').value }); });
+    recipesDB.push({
+        id: recipesDB.length + 1, name: document.getElementById('newRecName').value, type: document.getElementById('newRecType').value, basePortions: parseInt(document.getElementById('newRecBasePortions').value) || 1, diets: Array.from(document.getElementById('newRecDiets').selectedOptions).map(o => o.value), instructions: document.getElementById('newRecInst').value, ingredients: ings
+    });
+    alert("¡Magia hecha! Receta guardada."); this.reset(); document.getElementById('newRecIngredientsDiv').innerHTML = ''; addIngRow(); updateUI();
+    bootstrap.Modal.getInstance(document.getElementById('addRecipeModal')).hide();
+});
+
+document.getElementById('newIngredientForm').addEventListener('submit', function(e) {
+    e.preventDefault(); const name = document.getElementById('newIngName').value.trim(); const unit = document.getElementById('newIngBaseUnit').value; const price = parseFloat(document.getElementById('newIngPrice').value);
+    const id = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+    if (ingredientsDB[id]) { alert("Este ingrediente ya existe en la base de datos."); return; }
+    ingredientsDB[id] = { name: name, baseUnit: unit, pricePerBase: (unit==='g'||unit==='ml') ? price/1000 : price, conversion: (unit==='g'||unit==='ml') ? {[(unit==='g'?'kilos':'litros')]:1000} : {}, nutrition: { cals: parseFloat(document.getElementById('newIngCal').value), p: parseFloat(document.getElementById('newIngP').value), c: parseFloat(document.getElementById('newIngC').value), f: parseFloat(document.getElementById('newIngF').value) } };
+    initSelects(); bootstrap.Modal.getInstance(document.getElementById('newIngredientModal')).hide(); this.reset(); updateUI();
+});
+
+document.getElementById('themeToggle').addEventListener('click', function() {
+    if(document.documentElement.getAttribute('data-theme') === 'dark') { document.documentElement.removeAttribute('data-theme'); this.innerHTML = '<i class="fa-solid fa-moon"></i>'; }
+    else { document.documentElement.setAttribute('data-theme', 'dark'); this.innerHTML = '<i class="fa-solid fa-sun text-warning"></i>'; }
+});
+window.onload = () => { initSelects(); initPantry(); addIngRow(); updateUI(); };
+</script>
+</body>
+</html>
